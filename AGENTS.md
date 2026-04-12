@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Projektkontext
-Dieses Repository dient der Vorbereitung einer spaeteren gemeinsamen Energie- und Betriebsanalyse fuer das Gaestehaus Rader.
+Dieses Repository dient der gemeinsamen Energie- und Betriebsanalyse fuer das Gaestehaus Rader.
 
 Ziel ist die Zusammenfuehrung von:
 - Heizung / Fernwaerme
@@ -11,6 +11,8 @@ Ziel ist die Zusammenfuehrung von:
 - Wetter / Aussentemperatur
 
 Die zentrale inhaltliche Beschreibung liegt in `readme.md`.
+
+Die aktuelle Analysepipeline liegt in `scripts/build_analysis.R` und schreibt ihre Ergebnisse nach `output/energy-analysis/`.
 
 ## Aktueller Datenstand
 Derzeit sind im Repository bereits folgende Datenbereiche vorhanden:
@@ -41,4 +43,6 @@ Derzeit sind im Repository bereits folgende Datenbereiche vorhanden:
 - Belegung, Heizverbrauch, Stromverbrauch und PV-Erzeugung nicht vermischen, bevor Zeitbasis und Einheiten geklaert sind.
 - Wetterdaten als separate Quelle behandeln, zunaechst auf Tagesbasis mit den anderen Quellen vergleichen und erst danach auf Monatsebene aggregieren.
 - Wetterparameter und auffaellige Rohwerte fachlich pruefen, zum Beispiel Sonderwerte wie `rr = -1.0`.
+- Bestehende Analyse-Artefakte in `output/energy-analysis/` nur neu erzeugen oder erweitern, nicht manuell ueberschreiben.
+- Kennzahlen wie PV-Abdeckung oder PV-zu-Waerme als theoretische Salden behandeln, solange keine zeitgleichen Last- und Erzeugungsdaten mit passender Granularitaet vorliegen.
 - Wenn neue Quellen dazukommen, `readme.md` und diese Datei gemeinsam aktualisieren.

@@ -1,11 +1,12 @@
 {
-  "generated_at": "2026-04-12T15:39:53+0200",
+  "generated_at": "2026-04-12T17:44:01+0200",
   "timezone": "Europe/Vienna",
   "source_files": {
     "strom": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/strom/20260412-Lastprofil-AT007000096220000010190002540891A-20250101-20251231-QH.csv",
     "fernwaerme": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/fernwaerme/cns_device_export__20260410175322.csv",
     "fronius": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/fronius",
-    "meldewesen": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/meldewesen"
+    "meldewesen": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/meldewesen",
+    "wetter": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/wetter/Messstationen Tagesdaten v2 Datensatz_20250101_20251231.csv"
   },
   "source_metadata": {
     "strom": {
@@ -15,6 +16,10 @@
       "beginn": "01.01.2025",
       "ende": "31.12.2025",
       "energierichtung": "Verbrauch gemessen"
+    },
+    "wetter": {
+      "station_id": "19821",
+      "hdd_basis_c": 18
     }
   },
   "quality": {
@@ -25,13 +30,22 @@
       "raw_daily": 365,
       "analysis_daily": 365,
       "raw_monthly": 12,
-      "analysis_monthly": 12
+      "analysis_monthly": 12,
+      "analysis_seasonal": 3,
+      "analysis_event_summary": 7,
+      "analysis_guest_impact": 2,
+      "weather_daily": 365
     },
     "missing_days": {
       "electricity": [],
       "fernwaerme": [],
       "pv": ["2025-11-21", "2025-11-22", "2025-11-24", "2025-12-25"],
-      "occupancy": []
+      "occupancy": [],
+      "weather": []
+    },
+    "weather_flags": {
+      "precipitation_negative_days": 186,
+      "snow_depth_missing_days": 365
     }
   },
   "summary": {
@@ -40,14 +54,54 @@
     "total_heat_volume_m3": 2022.11,
     "total_pv_kwh_known_days": 4335.76,
     "pv_days_available": 361,
-    "total_arrivals": 66,
     "total_nights": 624,
+    "total_hdd18": 3222.8,
+    "winter_heat_kwh": 52694,
+    "winter_heat_share": 0.7283,
+    "total_potential_pv_to_heat_kwh": 933.237,
+    "potential_pv_to_heat_share": 0.0129,
+    "guest_days": 147,
+    "occupancy_drop_days": 21,
+    "electricity_additional_per_guest_night_kwh": 1.7985,
+    "electricity_additional_per_guest_night_pct": 0.1371,
+    "electricity_guest_attributed_kwh": 1122.2807,
+    "electricity_guest_attributed_share": 0.1723,
+    "heat_additional_per_guest_night_kwh": 4.4747,
+    "heat_additional_per_guest_night_pct": 0.0298,
+    "heat_guest_attributed_kwh": 2792.219,
+    "heat_guest_attributed_share": 0.0386,
     "electricity_replacement_intervals": 36,
     "electricity_replacement_share": 0.001,
+    "precipitation_negative_days": 186,
     "correlation_nights_vs_electricity": 0.3461,
     "correlation_nights_vs_heat": -0.1316,
+    "correlation_heat_vs_hdd18": 0.9721,
+    "correlation_heat_vs_temp_mean": -0.9605,
+    "correlation_heat_vs_nights_winter": 0.4317,
     "correlation_electricity_vs_pv": -0.6304,
     "max_abs_monthly_heat_delta_kwh": 1
   },
-  "notes": ["Potential PV coverage is calculated on day and month level only. It is not a true self-consumption metric.", "Fronius data are missing for 2025-11-21, 2025-11-22, 2025-11-24 and 2025-12-25. Missing values stay NA and are not imputed.", "Fernwaerme export includes a closing meter row for 2026-01-01. This row is excluded from the 2025 day-level dataset.", "Strom timestamps are parsed in Europe/Vienna and include DST transitions with 92 and 100 quarter-hour intervals on switch days."]
+  "models": {
+    "heat_weather_baseline": {
+      "rows": 310,
+      "intercept": 10.8927,
+      "hdd18_slope": 21.0054,
+      "r_squared": 0.9291
+    },
+    "guest_impact": {
+      "electricity": {
+        "rows": 365,
+        "r_squared": 0.5936,
+        "nights_coefficient_kwh": 1.7985,
+        "hdd18_coefficient_kwh": 0.8609
+      },
+      "heat": {
+        "rows": 365,
+        "r_squared": 0.9497,
+        "nights_coefficient_kwh": 4.4747,
+        "hdd18_coefficient_kwh": 20.9706
+      }
+    }
+  },
+  "notes": ["Potential PV coverage and PV-to-heat metrics are calculated on day and month level only. They are not true self-consumption or feed-in metrics.", "Fronius data are missing for 2025-11-21, 2025-11-22, 2025-11-24 and 2025-12-25. Missing values stay NA and are not imputed.", "Fernwaerme export includes a closing meter row for 2026-01-01. This row is excluded from the 2025 day-level dataset.", "Strom timestamps are parsed in Europe/Vienna and include DST transitions with 92 and 100 quarter-hour intervals on switch days.", "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.", "Guest impact uses daily nights as occupancy measure. Strom and Fernwaerme are modeled against nights; Fernwaerme is additionally controlled by HDD18.", "Negative precipitation values are treated as 0 mm and flagged via precipitation_negative_flag.", "Blank snow depth values stay NA and are flagged via snow_depth_missing_flag."]
 }

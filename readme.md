@@ -1,7 +1,7 @@
 # Gästehaus Rader – Energie-Datenquellen & Analyse-Setup
 
 ## Zweck
-Dieses Repository bündelt die Datenquellen für eine spätere gemeinsame Energie- und Betriebsanalyse des Gästehauses Rader.
+Dieses Repository buendelt die Datenquellen und die aktuelle Analysepipeline fuer die gemeinsame Energie- und Betriebsanalyse des Gaestehauses Rader.
 
 Ziel ist die Zusammenführung von:
 - Heizung / Fernwärme
@@ -93,6 +93,34 @@ Die spätere Analyse soll insbesondere folgende Fragen beantworten:
 
 ---
 
+## Aktueller Analyse-Stand
+
+Die aktuelle Pipeline liegt in `scripts/build_analysis.R` und erzeugt wiederverwendbare Ausgabedateien unter `output/energy-analysis/`.
+
+Wesentliche Artefakte:
+- `analysis_daily.csv`
+- `analysis_monthly.csv`
+- `analysis_seasonal.csv`
+- `analysis_event_summary.csv`
+- `raw_daily_sources.csv`
+- `raw_monthly_sources.csv`
+- `raw_strom_quarter_hour.csv`
+- `metadata.json`
+- `dashboard.html`
+
+Die aktuelle Ausbaustufe integriert:
+- Strom, Fernwaerme, PV, Meldewesen und Wetter auf Tagesbasis
+- Monatsaggregation fuer Vergleiche
+- saisonale Cluster `winter`, `transition`, `summer`
+- Heizgradtage `HDD18`
+- Vorher-Nachher-Kennzahlen bei Veraenderungen der Belegung
+- Naechtigungen als massgebliche Belegungsgroesse; Anreisen werden aktuell nicht analysiert
+- temperaturbereinigte Fernwaerme ueber ein lineares Wettermodell
+- Kennzahlen zu PV-Ueberschuss und theoretischem PV-zu-Waerme-Potenzial
+- HTML-Visualisierung mit Highcharts fuer Rohdaten und Analysewerte
+
+---
+
 ## Wichtige technische Klärungen
 
 Vor der eigentlichen Auswertung sollten die Datenquellen auf eine vergleichbare Basis gebracht werden:
@@ -101,20 +129,15 @@ Vor der eigentlichen Auswertung sollten die Datenquellen auf eine vergleichbare 
 - Einheiten sauber dokumentieren (`kWh`, `m3`, Nächtigungen, Anreisen)
 - PV-Erzeugung, Stromverbrauch und Fernwärme erst nach geklärter Zeitbasis vergleichen
 - Wetterfelder und Parameterbedeutungen sauber dokumentieren
-- auffällige Rohwerte in den Wetterdaten fachlich prüfen, zum Beispiel `rr = -1.0`
+- auffaellige Rohwerte in den Wetterdaten fachlich pruefen, zum Beispiel `rr = -1.0`
+- beachten, dass PV-Abdeckung und PV-zu-Waerme aktuell als theoretische Tagessalden und nicht als zeitgleiche Eigenverbrauchskennzahlen berechnet werden
 
 ---
 
 ## Nächste sinnvolle Ergänzungen
 
-- Wetterdaten fachlich prüfen und in die Analysepipeline integrieren
-- Datenfelder der einzelnen Quellen dokumentieren
-- gemeinsame Auswertungslogik für Tages- und Monatsebene festlegen
-- KPI-Definitionen festziehen, zum Beispiel:
-  - Heizverbrauch gesamt
-  - Heizverbrauch pro Gast oder belegter Nacht
-  - Stromverbrauch gesamt
-  - Stromverbrauch pro Gast oder belegter Nacht
-  - PV-Erzeugung gesamt
-  - PV-Anteil am Stromverbrauch
-  - saisonale Grundlasten und Ausreißer
+- Wetter-Sonderwerte fachlich validieren, insbesondere `rr = -1.0`
+- Schneehoehe `sh` fachlich klaeren, da im aktuellen Export keine Werte vorliegen
+- Heizmodell spaeter um weitere Einflussgroessen wie Belegung erweitern
+- fuer echte Eigenverbrauchs- oder Einspeiseanalysen feinere zeitgleiche Daten ergaenzen
+- die vorhandenen Datensaetze fuer Management-KPIs und konkrete Optimierungsszenarien weiter verdichten

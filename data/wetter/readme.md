@@ -3,7 +3,10 @@ geholt von https://dataset.api.hub.geosphere.at/app/frontend/station/historical/
 Aktuell verwendete Quelldatei im Projekt:
 - `Messstationen Tagesdaten v2 Datensatz_20250101_20251231.csv`
 - Zeitraum: `2025-01-01` bis `2025-12-31`
-- Verwendung: Wetterquelle fuer die spaetere gemeinsame Energieanalyse
+- Verwendung: aktuelle Wetterquelle fuer die gemeinsame Energieanalyse
+
+Die Datei wird in der Analysepipeline `scripts/build_analysis.R` direkt auf Tagesbasis verarbeitet.
+Offene fachliche Klaerungspunkte bleiben Sonderwerte wie `rr = -1.0` sowie die im Export leere Schneehoehe `sh`.
 
 Ausgewählte Stationen (1 von 1097)
 1 19821	Weißensee-Gatschach	14.10.1982	31.12.2100 
