@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-12T17:44:01+0200",
+  "generated_at": "2026-04-12T22:07:22+0200",
   "timezone": "Europe/Vienna",
   "source_files": {
     "strom": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/strom/20260412-Lastprofil-AT007000096220000010190002540891A-20250101-20251231-QH.csv",
@@ -34,6 +34,8 @@
       "analysis_seasonal": 3,
       "analysis_event_summary": 7,
       "analysis_guest_impact": 2,
+      "analysis_guest_impact_seasonal": 6,
+      "analysis_guest_value": 2,
       "weather_daily": 365
     },
     "missing_days": {
@@ -64,12 +66,14 @@
     "occupancy_drop_days": 21,
     "electricity_additional_per_guest_night_kwh": 1.7985,
     "electricity_additional_per_guest_night_pct": 0.1371,
-    "electricity_guest_attributed_kwh": 1122.2807,
-    "electricity_guest_attributed_share": 0.1723,
+    "electricity_guest_attributed_kwh": 887.4781,
+    "electricity_guest_attributed_share": 0.1363,
+    "electricity_model_residual_kwh": 2.8635e-12,
     "heat_additional_per_guest_night_kwh": 4.4747,
     "heat_additional_per_guest_night_pct": 0.0298,
-    "heat_guest_attributed_kwh": 2792.219,
-    "heat_guest_attributed_share": 0.0386,
+    "heat_guest_attributed_kwh": 3100.7982,
+    "heat_guest_attributed_share": 0.0429,
+    "heat_model_residual_kwh": -410.5204,
     "electricity_replacement_intervals": 36,
     "electricity_replacement_share": 0.001,
     "precipitation_negative_days": 186,
@@ -101,7 +105,30 @@
         "nights_coefficient_kwh": 4.4747,
         "hdd18_coefficient_kwh": 20.9706
       }
+    },
+    "guest_impact_segmented": {
+      "segment_col": "season_cluster",
+      "segments": ["winter", "transition", "summer"],
+      "fallback_days": {
+        "electricity": 0,
+        "heat": 122
+      }
     }
   },
-  "notes": ["Potential PV coverage and PV-to-heat metrics are calculated on day and month level only. They are not true self-consumption or feed-in metrics.", "Fronius data are missing for 2025-11-21, 2025-11-22, 2025-11-24 and 2025-12-25. Missing values stay NA and are not imputed.", "Fernwaerme export includes a closing meter row for 2026-01-01. This row is excluded from the 2025 day-level dataset.", "Strom timestamps are parsed in Europe/Vienna and include DST transitions with 92 and 100 quarter-hour intervals on switch days.", "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.", "Guest impact uses daily nights as occupancy measure. Strom and Fernwaerme are modeled against nights; Fernwaerme is additionally controlled by HDD18.", "Negative precipitation values are treated as 0 mm and flagged via precipitation_negative_flag.", "Blank snow depth values stay NA and are flagged via snow_depth_missing_flag."]
+  "assumptions": {
+    "pricing": {
+      "summer_apartment_rate_eur_per_night": 75,
+      "winter_apartment_rate_eur_per_night": 85,
+      "electricity_tariff_ex_vat_eur_per_kwh": 0.125,
+      "electricity_tariff_inc_vat_eur_per_kwh": 0.15,
+      "heat_tariff_ex_vat_eur_per_kwh": null,
+      "heat_tariff_inc_vat_eur_per_kwh": null
+    },
+    "economic_interpretation": {
+      "occupancy_model_unit": "guest_nights",
+      "revenue_assumption_unit": "apartment_nights",
+      "note": "Guest value scenarios are only an approximation until the mapping between guest nights and sold apartment nights is clarified."
+    }
+  },
+  "notes": ["Potential PV coverage and PV-to-heat metrics are calculated on day and month level only. They are not true self-consumption or feed-in metrics.", "Fronius data are missing for 2025-11-21, 2025-11-22, 2025-11-24 and 2025-12-25. Missing values stay NA and are not imputed.", "Fernwaerme export includes a closing meter row for 2026-01-01. This row is excluded from the 2025 day-level dataset.", "Strom timestamps are parsed in Europe/Vienna and include DST transitions with 92 and 100 quarter-hour intervals on switch days.", "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.", "Guest impact uses daily nights as occupancy measure. Strom and Fernwaerme are modeled against nights; Fernwaerme is additionally controlled by HDD18.", "Seasonal guest split exposes modeled basis, modeled guest impact and a separate residual line defined as measured consumption minus modeled total.", "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and monthly aggregation to reduce distortion from mixed summer/winter behavior.", "Transition-period Fernwaerme falls back to the all-days model when the seasonal coefficient would imply a negative guest impact.", "Seasonal guest value scenarios use apartment-night prices of 75 EUR in summer and 85 EUR in winter.", "A heat tariff is not yet available in the repository. Additional heating cost per guest night is therefore shown as kWh and as a price formula, not as a fixed EUR amount.", "Negative precipitation values are treated as 0 mm and flagged via precipitation_negative_flag.", "Blank snow depth values stay NA and are flagged via snow_depth_missing_flag."]
 }
