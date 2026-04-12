@@ -1,0 +1,304 @@
+{
+    "result": [
+        {
+            "m_GroupID": "01.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 4,
+            "c_Arrivals": 0,
+            "c_Nights": 4,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "01.09.2025"
+        },
+        {
+            "m_GroupID": "02.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "02.09.2025"
+        },
+        {
+            "m_GroupID": "03.09.2025",
+            "m_Arrivals": 2,
+            "m_Nights": 2,
+            "c_Arrivals": 2,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "03.09.2025"
+        },
+        {
+            "m_GroupID": "04.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "04.09.2025"
+        },
+        {
+            "m_GroupID": "05.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "05.09.2025"
+        },
+        {
+            "m_GroupID": "06.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "06.09.2025"
+        },
+        {
+            "m_GroupID": "07.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "07.09.2025"
+        },
+        {
+            "m_GroupID": "08.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "08.09.2025"
+        },
+        {
+            "m_GroupID": "09.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "09.09.2025"
+        },
+        {
+            "m_GroupID": "10.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "10.09.2025"
+        },
+        {
+            "m_GroupID": "11.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "11.09.2025"
+        },
+        {
+            "m_GroupID": "12.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "12.09.2025"
+        },
+        {
+            "m_GroupID": "13.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 2,
+            "c_Arrivals": 0,
+            "c_Nights": 2,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "13.09.2025"
+        },
+        {
+            "m_GroupID": "14.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "14.09.2025"
+        },
+        {
+            "m_GroupID": "15.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "15.09.2025"
+        },
+        {
+            "m_GroupID": "16.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "16.09.2025"
+        },
+        {
+            "m_GroupID": "17.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "17.09.2025"
+        },
+        {
+            "m_GroupID": "18.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "18.09.2025"
+        },
+        {
+            "m_GroupID": "19.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "19.09.2025"
+        },
+        {
+            "m_GroupID": "20.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "20.09.2025"
+        },
+        {
+            "m_GroupID": "21.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "21.09.2025"
+        },
+        {
+            "m_GroupID": "22.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "22.09.2025"
+        },
+        {
+            "m_GroupID": "23.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "23.09.2025"
+        },
+        {
+            "m_GroupID": "24.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "24.09.2025"
+        },
+        {
+            "m_GroupID": "25.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "25.09.2025"
+        },
+        {
+            "m_GroupID": "26.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "26.09.2025"
+        },
+        {
+            "m_GroupID": "27.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "27.09.2025"
+        },
+        {
+            "m_GroupID": "28.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "28.09.2025"
+        },
+        {
+            "m_GroupID": "29.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "29.09.2025"
+        },
+        {
+            "m_GroupID": "30.09.2025",
+            "m_Arrivals": 0,
+            "m_Nights": 0,
+            "c_Arrivals": 0,
+            "c_Nights": 0,
+            "m_DiffNightsPercent": 0.0,
+            "m_DiffArrivalsPercent": 0.0,
+            "c_GroupID": "30.09.2025"
+        }
+    ]
+}

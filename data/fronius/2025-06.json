@@ -1,0 +1,208 @@
+{
+    "isPremiumFeature": true,
+    "navOptions": {
+        "canDrillDown": true,
+        "canMoveBackward": true,
+        "canMoveForward": true
+    },
+    "settings": {
+        "series": [
+            {
+                "type": "column",
+                "name": "Energie | Symo 5.0-3-M (1)",
+                "stacking": "normal",
+                "data": [
+                    [
+                        1748736000000,
+                        21.36
+                    ],
+                    [
+                        1748822400000,
+                        16.31
+                    ],
+                    [
+                        1748908800000,
+                        4.84
+                    ],
+                    [
+                        1748995200000,
+                        21.18
+                    ],
+                    [
+                        1749081600000,
+                        13.14
+                    ],
+                    [
+                        1749168000000,
+                        22.57
+                    ],
+                    [
+                        1749254400000,
+                        13.80
+                    ],
+                    [
+                        1749340800000,
+                        8.18
+                    ],
+                    [
+                        1749427200000,
+                        25.27
+                    ],
+                    [
+                        1749513600000,
+                        24.35
+                    ],
+                    [
+                        1749600000000,
+                        23.86
+                    ],
+                    [
+                        1749686400000,
+                        24.11
+                    ],
+                    [
+                        1749772800000,
+                        24.25
+                    ],
+                    [
+                        1749859200000,
+                        23.26
+                    ],
+                    [
+                        1749945600000,
+                        20.88
+                    ],
+                    [
+                        1750032000000,
+                        12.09
+                    ],
+                    [
+                        1750118400000,
+                        19.32
+                    ],
+                    [
+                        1750204800000,
+                        24.64
+                    ],
+                    [
+                        1750291200000,
+                        23.85
+                    ],
+                    [
+                        1750377600000,
+                        24.27
+                    ],
+                    [
+                        1750464000000,
+                        24.26
+                    ],
+                    [
+                        1750550400000,
+                        24.58
+                    ],
+                    [
+                        1750636800000,
+                        19.33
+                    ],
+                    [
+                        1750723200000,
+                        24.10
+                    ],
+                    [
+                        1750809600000,
+                        22.71
+                    ],
+                    [
+                        1750896000000,
+                        22.91
+                    ],
+                    [
+                        1750982400000,
+                        22.56
+                    ],
+                    [
+                        1751068800000,
+                        22.50
+                    ],
+                    [
+                        1751155200000,
+                        23.22
+                    ],
+                    [
+                        1751241600000,
+                        17.06
+                    ]
+                ],
+                "index": 0,
+                "color": "#70AFCD",
+                "fillOpacity": 0,
+                "yAxis": "kWh",
+                "id": "155_pSQeFUnp3Eiitj0V_zEYgA",
+                "threshold": 0,
+                "tooltip": {
+                    "valueSuffix": "kWh",
+                    "valueDecimals": 2
+                },
+                "dashStyle": "solid"
+            }
+        ],
+        "sumValue": "614,76 kWh",
+        "yAxis": [
+            {
+                "title": {
+                    "text": "Energie [kWh]"
+                },
+                "id": "kWh",
+                "opposite": false,
+                "endOnTick": true,
+                "tickAmount": 6,
+                "showEmpty": false
+            }
+        ],
+        "xAxis": {
+            "type": "datetime",
+            "max": 1751241600000.0,
+            "min": 1748736000000.0,
+            "crosshair": true,
+            "dateTimeLabelFormats": {
+                "day": "%e",
+                "month": "%b",
+                "year": "%Y"
+            },
+            "tickInterval": 86400000,
+            "tickWidth": 1,
+            "tickColor": "#ECEDED",
+            "lineColor": "#ECEDED"
+        }
+    },
+    "specialView": "",
+    "title": "Juni 2025",
+    "deviceChannels": {
+        "channels": [
+            {
+                "displayName": "",
+                "categoryDisplayName": "",
+                "isAvailable": true,
+                "value": "energypvgenerator",
+                "category": "uncategorized",
+                "columnCalc": "auto",
+                "isTsiOnlyVisible": false,
+                "isPremiumChannel": false
+            }
+        ],
+        "devices": [
+            {
+                "deviceId": "151e24a5-e949-48dc-a2b6-3d15ff311880",
+                "dataSourceId": "240.116559",
+                "displayName": "Symo 5.0-3-M (1)",
+                "isAdditionalAcSource": false,
+                "isActiveDevice": true,
+                "meterLocation": "none",
+                "isMeterOrConsumerDevice": false,
+                "isVisible": true
+            }
+        ]
+    },
+    "showBattInfo": false,
+    "sumValue": "614,76 kWh"
+}

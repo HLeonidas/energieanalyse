@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-04-12T15:39:53+0200",
+  "timezone": "Europe/Vienna",
+  "source_files": {
+    "strom": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/strom/20260412-Lastprofil-AT007000096220000010190002540891A-20250101-20251231-QH.csv",
+    "fernwaerme": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/fernwaerme/cns_device_export__20260410175322.csv",
+    "fronius": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/fronius",
+    "meldewesen": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/meldewesen"
+  },
+  "source_metadata": {
+    "strom": {
+      "kundennummer": "817866",
+      "kundenname": "Hueber Astrid",
+      "zp_nummer": "AT007000096220000010190002540891A",
+      "beginn": "01.01.2025",
+      "ende": "31.12.2025",
+      "energierichtung": "Verbrauch gemessen"
+    }
+  },
+  "quality": {
+    "coverage_start": "2025-01-01",
+    "coverage_end": "2025-12-31",
+    "row_counts": {
+      "strom_quarter_hour": 35040,
+      "raw_daily": 365,
+      "analysis_daily": 365,
+      "raw_monthly": 12,
+      "analysis_monthly": 12
+    },
+    "missing_days": {
+      "electricity": [],
+      "fernwaerme": [],
+      "pv": ["2025-11-21", "2025-11-22", "2025-11-24", "2025-12-25"],
+      "occupancy": []
+    }
+  },
+  "summary": {
+    "total_electricity_kwh": 6512.134,
+    "total_heat_kwh": 72352,
+    "total_heat_volume_m3": 2022.11,
+    "total_pv_kwh_known_days": 4335.76,
+    "pv_days_available": 361,
+    "total_arrivals": 66,
+    "total_nights": 624,
+    "electricity_replacement_intervals": 36,
+    "electricity_replacement_share": 0.001,
+    "correlation_nights_vs_electricity": 0.3461,
+    "correlation_nights_vs_heat": -0.1316,
+    "correlation_electricity_vs_pv": -0.6304,
+    "max_abs_monthly_heat_delta_kwh": 1
+  },
+  "notes": ["Potential PV coverage is calculated on day and month level only. It is not a true self-consumption metric.", "Fronius data are missing for 2025-11-21, 2025-11-22, 2025-11-24 and 2025-12-25. Missing values stay NA and are not imputed.", "Fernwaerme export includes a closing meter row for 2026-01-01. This row is excluded from the 2025 day-level dataset.", "Strom timestamps are parsed in Europe/Vienna and include DST transitions with 92 and 100 quarter-hour intervals on switch days."]
+}

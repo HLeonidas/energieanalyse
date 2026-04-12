@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gaestehaus Rader - Energieanalyse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3ede4;
+      --panel: #fffaf3;
+      --ink: #203127;
+      --muted: #667267;
+      --line: rgba(32, 49, 39, 0.12);
+      --accent: #1f6d5b;
+      --shadow: 0 18px 48px rgba(28, 34, 29, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(196, 102, 45, 0.12), transparent 32%),
+        radial-gradient(circle at top left, rgba(31, 109, 91, 0.12), transparent 26%),
+        linear-gradient(180deg, #f6f0e9 0%, var(--bg) 100%);
+    }
+
+    .shell {
+      width: min(1440px, calc(100vw - 32px));
+      margin: 24px auto 40px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.9fr);
+      gap: 20px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(255, 250, 243, 0.92), rgba(255, 245, 232, 0.98));
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 4vw, 52px);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68ch;
+      line-height: 1.55;
+    }
+
+    .downloads {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid rgba(32, 49, 39, 0.08);
+    }
+
+    .downloads h2,
+    .notes h2,
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .downloads a {
+      color: var(--ink);
+      text-decoration: none;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(31, 109, 91, 0.08);
+      border: 1px solid rgba(31, 109, 91, 0.12);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+    }
+
+    .downloads a:hover {
+      background: rgba(31, 109, 91, 0.12);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .kpi {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 250, 243, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .kpi .label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .kpi .value {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .kpi .hint {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .notes {
+      margin-top: 18px;
+      padding: 20px 22px;
+      border-radius: 20px;
+      background: rgba(255, 250, 243, 0.84);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .notes ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .panel {
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255, 250, 243, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .panel.wide {
+      grid-column: 1 / -1;
+    }
+
+    .panel p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .chart { min-height: 360px; }
+    .chart.tall { min-height: 460px; }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .grid,
+      .kpis {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Gaestehaus Rader</p>
+        <h1>Energieanalyse 2025</h1>
+        <p id="summary-text"></p>
+      </div>
+      <aside class="downloads">
+        <h2>Exportdateien</h2>
+        <a href="raw_strom_quarter_hour.csv">raw_strom_quarter_hour.csv</a>
+        <a href="raw_daily_sources.csv">raw_daily_sources.csv</a>
+        <a href="raw_monthly_sources.csv">raw_monthly_sources.csv</a>
+        <a href="analysis_daily.csv">analysis_daily.csv</a>
+        <a href="analysis_monthly.csv">analysis_monthly.csv</a>
+        <a href="metadata.json">metadata.json</a>
+      </aside>
+    </section>
+
+    <section class="kpis" id="kpis"></section>
+
+    <section class="notes">
+      <h2>Hinweise zur Datenbasis</h2>
+      <ul id="notes-list"></ul>
+    </section>
+
+    <section class="grid">
+      <article class="panel wide">
+        <h2>Rohdaten: Strom Lastprofil in Viertelstunden</h2>
+        <p>Der Chart zeigt das komplette KELAG-Lastprofil 2025. Ersatzwerte werden separat markiert.</p>
+        <div class="chart tall" id="chart-electricity-qh"></div>
+      </article>
+
+      <article class="panel">
+        <h2>Rohdaten: Tageswerte Energiequellen</h2>
+        <p>Taegliche Summen bzw. Tageswerte aus Strom, Fernwaerme und PV.</p>
+        <div class="chart" id="chart-raw-daily-energy"></div>
+      </article>
+
+      <article class="panel">
+        <h2>Rohdaten: Belegung</h2>
+        <p>Taegliche Anreisen und Naechtigungen aus dem Meldewesen.</p>
+        <div class="chart" id="chart-raw-occupancy"></div>
+      </article>
+
+      <article class="panel">
+        <h2>Rohdaten: Monatsvergleich</h2>
+        <p>Monatliche Rohsummen fuer Energie und Belegung.</p>
+        <div class="chart" id="chart-raw-monthly"></div>
+      </article>
+
+      <article class="panel">
+        <h2>Analyse: PV-Balance und Restlast</h2>
+        <p>Restlast nach PV ist nur als Tagessaldo approximiert. Zeitgleiche Eigenverbrauchsanalyse ist damit noch nicht abgedeckt.</p>
+        <div class="chart" id="chart-analysis-balance"></div>
+      </article>
+
+      <article class="panel">
+        <h2>Analyse: Verbrauch pro Naechtigung</h2>
+        <p>Nur Tage mit Naechtigungen liefern Kennzahlen pro Nacht.</p>
+        <div class="chart" id="chart-analysis-intensity"></div>
+      </article>
+
+      <article class="panel wide">
+        <h2>Analyse: Zusammenhang Belegung und Verbrauch</h2>
+        <p>Scatter-Plot fuer Tage mit vorhandenen Belegungs- und Energiedaten.</p>
+        <div class="chart" id="chart-analysis-scatter"></div>
+      </article>
+    </section>
+  </div>
+
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.highcharts.com/modules/boost.js"></script>
+  <script src="dashboard_data.js"></script>
+  <script>
+    (function () {
+      const data = window.energyAnalysisData;
+      if (!data) {
+        document.body.innerHTML = '<p style="font-family: sans-serif; padding: 24px;">dashboard_data.js konnte nicht geladen werden.</p>';
+        return;
+      }
+
+      Highcharts.setOptions({
+        lang: {
+          decimalPoint: ',',
+          thousandsSep: '.'
+        },
+        time: {
+          timezone: 'Europe/Vienna'
+        },
+        chart: {
+          style: {
+            fontFamily: '"IBM Plex Sans", "Segoe UI", sans-serif'
+          },
+          backgroundColor: 'transparent'
+        },
+        colors: ['#1f6d5b', '#c4662d', '#d2a23f', '#3f6ab7', '#8a4a96', '#bf3e34']
+      });
+
+      const rawDaily = data.raw.daily;
+      const rawMonthly = data.raw.monthly;
+      const analysisDaily = data.analysis.daily;
+      const summary = data.metadata.summary;
+      const quality = data.metadata.quality;
+
+      const fmt = (value, digits = 1) => {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+          return 'n/a';
+        }
+        return new Intl.NumberFormat('de-AT', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: digits
+        }).format(value);
+      };
+
+      const fmtPct = (value) => {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+          return 'n/a';
+        }
+        return new Intl.NumberFormat('de-AT', {
+          style: 'percent',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 1
+        }).format(value);
+      };
+
+      const toSeries = (rows, yKey, xKey = 'timestamp_ms') =>
+        rows
+          .filter((row) => row[yKey] !== null && row[yKey] !== undefined)
+          .map((row) => [row[xKey], row[yKey]]);
+
+      const toScatter = (rows, xKey, yKey) =>
+        rows
+          .filter((row) => row[xKey] !== null && row[xKey] !== undefined && row[yKey] !== null && row[yKey] !== undefined)
+          .map((row) => ({
+            x: row[xKey],
+            y: row[yKey],
+            custom: row
+          }));
+
+      document.getElementById('summary-text').textContent =
+        'Die Pipeline fuehrt Rohdaten aus Strom, Fernwaerme, PV und Meldewesen zu Tages- und Monatsdatensaetzen zusammen. ' +
+        'Das Dashboard zeigt sowohl die normalisierten Rohdaten als auch abgeleitete Kennzahlen fuer spaetere Visualisierungen.';
+
+      const kpis = [
+        { label: 'Strom gesamt', value: `${fmt(summary.total_electricity_kwh, 0)} kWh`, hint: 'Summe 2025' },
+        { label: 'Fernwaerme gesamt', value: `${fmt(summary.total_heat_kwh, 0)} kWh`, hint: 'Tagessummen 2025' },
+        { label: 'PV bekannte Tage', value: `${fmt(summary.total_pv_kwh_known_days, 0)} kWh`, hint: `${fmt(summary.pv_days_available, 0)} Tage mit Daten` },
+        { label: 'Naechtigungen', value: fmt(summary.total_nights, 0), hint: `Anreisen ${fmt(summary.total_arrivals, 0)}` },
+        { label: 'Ersatzwerte Strom', value: fmt(summary.electricity_replacement_intervals, 0), hint: fmtPct(summary.electricity_replacement_share) },
+        { label: 'PV Fehlstellen', value: fmt(quality.missing_days.pv.length, 0), hint: 'werden nicht imputiert' }
+      ];
+
+      document.getElementById('kpis').innerHTML = kpis.map((kpi) => `
+        <article class="kpi">
+          <span class="label">${kpi.label}</span>
+          <span class="value">${kpi.value}</span>
+          <span class="hint">${kpi.hint}</span>
+        </article>
+      `).join('');
+
+      const notes = [
+        ...data.metadata.notes,
+        `Korrelation Naechtigungen vs. Strom: ${fmt(summary.correlation_nights_vs_electricity, 2)}`,
+        `Korrelation Naechtigungen vs. Fernwaerme: ${fmt(summary.correlation_nights_vs_heat, 2)}`,
+        `Maximale Abweichung Fernwaerme Monat Tagessumme vs. Export: ${fmt(summary.max_abs_monthly_heat_delta_kwh, 0)} kWh`
+      ];
+
+      document.getElementById('notes-list').innerHTML = notes.map((note) => `<li>${note}</li>`).join('');
+
+      Highcharts.stockChart('chart-electricity-qh', {
+        chart: { zooming: { type: 'x' } },
+        boost: { useGPUTranslations: true },
+        credits: { enabled: false },
+        legend: { enabled: true },
+        navigator: {
+          series: { type: 'line', data: data.raw.electricity_quarter_hour.points }
+        },
+        rangeSelector: { selected: 3 },
+        xAxis: { type: 'datetime' },
+        yAxis: { title: { text: 'kWh je 15 Minuten' } },
+        tooltip: { shared: true, valueDecimals: 3 },
+        series: [
+          { type: 'line', name: 'Stromverbrauch', data: data.raw.electricity_quarter_hour.points, lineWidth: 1.1, turboThreshold: 50000 },
+          { type: 'scatter', name: 'Ersatzwerte', data: data.raw.electricity_quarter_hour.replacement_points, color: '#bf3e34', marker: { radius: 2.5 }, turboThreshold: 50000 }
+        ]
+      });
+
+      Highcharts.chart('chart-raw-daily-energy', {
+        credits: { enabled: false },
+        title: { text: null },
+        xAxis: { type: 'datetime' },
+        yAxis: { title: { text: 'kWh pro Tag' } },
+        tooltip: { shared: true, valueDecimals: 2 },
+        series: [
+          { type: 'line', name: 'Strom', data: toSeries(rawDaily, 'electricity_kwh') },
+          { type: 'line', name: 'Fernwaerme', data: toSeries(rawDaily, 'heat_kwh') },
+          { type: 'line', name: 'PV', data: toSeries(rawDaily, 'pv_kwh') }
+        ]
+      });
+
+      Highcharts.chart('chart-raw-occupancy', {
+        credits: { enabled: false },
+        title: { text: null },
+        xAxis: { type: 'datetime' },
+        yAxis: [{ title: { text: 'Naechtigungen' } }, { title: { text: 'Anreisen' }, opposite: true }],
+        tooltip: { shared: true, valueDecimals: 0 },
+        series: [
+          { type: 'column', name: 'Naechtigungen', data: toSeries(rawDaily, 'nights'), borderRadius: 2 },
+          { type: 'line', name: 'Anreisen', yAxis: 1, data: toSeries(rawDaily, 'arrivals') }
+        ]
+      });
+
+      Highcharts.chart('chart-raw-monthly', {
+        credits: { enabled: false },
+        title: { text: null },
+        xAxis: { type: 'datetime' },
+        yAxis: [{ title: { text: 'kWh je Monat' } }, { title: { text: 'Naechtigungen' }, opposite: true }],
+        tooltip: { shared: true, valueDecimals: 1 },
+        plotOptions: { column: { borderRadius: 3 } },
+        series: [
+          { type: 'column', name: 'Strom', data: toSeries(rawMonthly, 'electricity_kwh', 'month_start_ms') },
+          { type: 'column', name: 'Fernwaerme', data: toSeries(rawMonthly, 'heat_kwh', 'month_start_ms') },
+          { type: 'column', name: 'PV', data: toSeries(rawMonthly, 'pv_kwh', 'month_start_ms') },
+          { type: 'line', name: 'Naechtigungen', yAxis: 1, data: toSeries(rawMonthly, 'nights', 'month_start_ms') }
+        ]
+      });
+
+      Highcharts.chart('chart-analysis-balance', {
+        credits: { enabled: false },
+        title: { text: null },
+        xAxis: { type: 'datetime' },
+        yAxis: [
+          { title: { text: 'kWh pro Tag' } },
+          {
+            title: { text: 'PV Coverage' },
+            opposite: true,
+            labels: { formatter: function () { return fmtPct(this.value / 100); } },
+            max: 100
+          }
+        ],
+        tooltip: { shared: true },
+        plotOptions: { area: { fillOpacity: 0.2 } },
+        series: [
+          { type: 'area', name: 'Restlast nach PV', data: toSeries(analysisDaily, 'grid_need_after_pv_kwh') },
+          { type: 'area', name: 'PV Ueberschuss vs. Last', data: toSeries(analysisDaily, 'pv_surplus_vs_load_kwh') },
+          {
+            type: 'line',
+            name: 'Potenzielle PV-Abdeckung',
+            yAxis: 1,
+            data: analysisDaily.filter((row) => row.potential_pv_coverage_ratio !== null && row.potential_pv_coverage_ratio !== undefined).map((row) => [row.timestamp_ms, row.potential_pv_coverage_ratio * 100]),
+            tooltip: { valueSuffix: ' %', valueDecimals: 1 }
+          }
+        ]
+      });
+
+      Highcharts.chart('chart-analysis-intensity', {
+        credits: { enabled: false },
+        title: { text: null },
+        xAxis: { type: 'datetime' },
+        yAxis: { title: { text: 'kWh pro Naechtigung' } },
+        tooltip: { shared: true, valueDecimals: 2 },
+        series: [
+          { type: 'line', name: 'Strom / Naechtigung', data: toSeries(analysisDaily, 'electricity_kwh_per_night') },
+          { type: 'line', name: 'Fernwaerme / Naechtigung', data: toSeries(analysisDaily, 'heat_kwh_per_night') },
+          { type: 'line', name: 'PV / Naechtigung', data: toSeries(analysisDaily, 'pv_kwh_per_night') }
+        ]
+      });
+
+      Highcharts.chart('chart-analysis-scatter', {
+        credits: { enabled: false },
+        title: { text: null },
+        xAxis: { title: { text: 'Naechtigungen pro Tag' } },
+        yAxis: { title: { text: 'kWh pro Tag' } },
+        tooltip: {
+          formatter: function () {
+            const row = this.point.custom;
+            return `<b>${row.date}</b><br>Naechtigungen: ${fmt(row.nights, 0)}<br>Wert: ${fmt(this.y, 2)} kWh`;
+          }
+        },
+        series: [
+          { type: 'scatter', name: 'Strom', data: toScatter(analysisDaily, 'nights', 'electricity_kwh') },
+          { type: 'scatter', name: 'Fernwaerme', data: toScatter(analysisDaily, 'nights', 'heat_kwh') }
+        ]
+      });
+    })();
+  </script>
+</body>
+</html>
