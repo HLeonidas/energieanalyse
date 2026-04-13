@@ -134,7 +134,10 @@ make_no_guest_scenario <- function(df) {
     "log1p_nights",
     "nights_sq",
     "occupied_apartments_estimated",
-    "arrivals"
+    "arrivals",
+    "occupancy_delta_nights",
+    "occupancy_increase_flag",
+    "occupancy_drop_flag"
   )
   for (column_name in guest_zero_columns) {
     if (column_name %in% names(df)) {
@@ -174,6 +177,7 @@ build_model_comparison_dataset <- function(
         nights_sq_coefficient_kwh = NA_real_,
         occupied_apartments_estimated_coefficient_kwh = NA_real_,
         arrivals_coefficient_kwh = NA_real_,
+        occupancy_delta_nights_coefficient_kwh = NA_real_,
         temp_mean_c_coefficient_kwh = NA_real_,
         sunshine_hours_coefficient_kwh = NA_real_,
         is_weekend_flag_coefficient_kwh = NA_real_,
@@ -201,6 +205,7 @@ build_model_comparison_dataset <- function(
       nights_sq_coefficient_kwh = safe_coef(model, "nights_sq"),
       occupied_apartments_estimated_coefficient_kwh = safe_coef(model, "occupied_apartments_estimated"),
       arrivals_coefficient_kwh = safe_coef(model, "arrivals"),
+      occupancy_delta_nights_coefficient_kwh = safe_coef(model, "occupancy_delta_nights"),
       temp_mean_c_coefficient_kwh = safe_coef(model, "temp_mean_c"),
       sunshine_hours_coefficient_kwh = safe_coef(model, "sunshine_hours"),
       is_weekend_flag_coefficient_kwh = safe_coef(model, "is_weekend_flag"),
@@ -832,6 +837,7 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
         has_guests_flag_coefficient_kwh = NA_real_,
         occupied_apartments_estimated_coefficient_kwh = NA_real_,
         arrivals_coefficient_kwh = NA_real_,
+        occupancy_delta_nights_coefficient_kwh = NA_real_,
         hdd18_coefficient_kwh = NA_real_,
         hdd18_sq_coefficient_kwh = NA_real_,
         temp_mean_c_coefficient_kwh = NA_real_,
@@ -916,6 +922,7 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
       has_guests_flag_coefficient_kwh = safe_coef(model, "has_guests_flag"),
       occupied_apartments_estimated_coefficient_kwh = safe_coef(model, "occupied_apartments_estimated"),
       arrivals_coefficient_kwh = safe_coef(model, "arrivals"),
+      occupancy_delta_nights_coefficient_kwh = safe_coef(model, "occupancy_delta_nights"),
       hdd18_coefficient_kwh = safe_coef(model, "hdd18"),
       hdd18_sq_coefficient_kwh = safe_coef(model, "I(hdd18^2)"),
       temp_mean_c_coefficient_kwh = safe_coef(model, "temp_mean_c"),
@@ -957,6 +964,7 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
       has_guests_flag_coefficient_kwh = safe_coef(model, "has_guests_flag"),
       occupied_apartments_estimated_coefficient_kwh = safe_coef(model, "occupied_apartments_estimated"),
       arrivals_coefficient_kwh = safe_coef(model, "arrivals"),
+      occupancy_delta_nights_coefficient_kwh = safe_coef(model, "occupancy_delta_nights"),
       hdd18_coefficient_kwh = safe_coef(model, "hdd18"),
       hdd18_sq_coefficient_kwh = safe_coef(model, "I(hdd18^2)"),
       temp_mean_c_coefficient_kwh = safe_coef(model, "temp_mean_c"),
@@ -1191,6 +1199,7 @@ fit_segmented_guest_impact_model <- function(
         "has_guests_flag_coefficient_kwh",
         "occupied_apartments_estimated_coefficient_kwh",
         "arrivals_coefficient_kwh",
+        "occupancy_delta_nights_coefficient_kwh",
         "hdd18_coefficient_kwh",
         "hdd18_sq_coefficient_kwh",
         "temp_mean_c_coefficient_kwh",
@@ -1293,6 +1302,7 @@ align_segmented_summary_to_applied_series <- function(
           "has_guests_flag_coefficient_kwh",
           "occupied_apartments_estimated_coefficient_kwh",
           "arrivals_coefficient_kwh",
+          "occupancy_delta_nights_coefficient_kwh",
           "hdd18_coefficient_kwh",
           "hdd18_sq_coefficient_kwh",
           "temp_mean_c_coefficient_kwh",
@@ -1478,15 +1488,20 @@ analysis_daily$heat_weather_residual_delta_prev_day_kwh <- ifelse(
 )
 
 real_electricity_formula_annual <- real_electricity_kwh ~
-  hdd18 +
-  nights +
+  splines::ns(hdd18, 3) +
+  occupied_apartments_estimated +
+  arrivals +
+  occupancy_delta_nights +
+  sunshine_hours +
   is_weekend_flag +
-  month_num
+  factor(season_cluster)
 real_electricity_formula_segmented <- real_electricity_kwh ~
-  hdd18 +
-  nights +
-  is_weekend_flag +
-  month_num
+  splines::ns(hdd18, 3) +
+  occupied_apartments_estimated +
+  arrivals +
+  occupancy_delta_nights +
+  sunshine_hours +
+  is_weekend_flag
 heat_formula_annual <- heat_kwh ~
   hdd18 +
   I(hdd18^2) +
@@ -1528,7 +1543,7 @@ real_electricity_model_comparison <- build_model_comparison_dataset(
     ),
     list(
       model_id = "model4_extended_operational",
-      model_label = "Modell 4: Produktionsmodell mit HDD18, nights, weekend und Monat",
+      model_label = "Modell 4: Produktionsmodell mit HDD18-Spline, Sonne, Betrieb und Saison",
       formula = real_electricity_formula_annual
     ),
     list(
@@ -1600,7 +1615,7 @@ real_electricity_guest_impact_model <- fit_guest_impact_model(
   real_electricity_formula_annual,
   "real_electricity",
   "Realer Stromverbrauch",
-  "Naechtigungs-, HDD18-, Monats- und kalenderkontrolliert"
+  "Nichtlinearer HDD18-, Sonnen-, Betriebs- und kalenderkontrolliert"
 )
 heat_guest_impact_model <- fit_guest_impact_model(
   analysis_daily,
@@ -1617,7 +1632,7 @@ real_electricity_guest_impact_model_seasonal <- fit_segmented_guest_impact_model
   real_electricity_formula_segmented,
   "real_electricity",
   "Realer Stromverbrauch",
-  "Naechtigungs-, HDD18-, Monats- und kalenderkontrolliert",
+  "Nichtlinearer HDD18-, Sonnen-, Betriebs- und kalenderkontrolliert",
   segment_col = "season_cluster",
   segment_levels = season_levels
 )
@@ -2092,7 +2107,7 @@ metadata <- list(
     "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.",
     "Potential PV-to-heat is calculated as the theoretical overlap between measured grid feed-in and daily Fernwaerme demand.",
     "Guest impact baseline is documented as 'modellierte Referenz ohne Gaeste'. It is a model-based reference without guests, not a physical idle state.",
-    "Guest impact models use nights, HDD18, month effects and calendar effects for Strom; Fernwaerme uses HDD18, HDD18^2, log1p(guest_nights), occupied_apartments_estimated, arrivals and calendar effects.",
+    "Guest impact models use seasonally segmented daily Strom models with nonlinear HDD18, sunshine, estimated occupied apartments, arrivals, occupancy changes and calendar effects; Fernwaerme uses HDD18, HDD18^2, log1p(guest_nights), occupied_apartments_estimated, arrivals and calendar effects.",
     "Validation output analysis_model_comparison.csv compares Verbrauch ~ hdd18, + has_guests_flag and + nights against extended operating models.",
     "Guest value estimates convert guest nights to occupied apartment nights via min(3, ceil(guest_nights / 2)) on each day with guests.",
     "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and monthly aggregation to reduce distortion from mixed summer/winter behavior.",

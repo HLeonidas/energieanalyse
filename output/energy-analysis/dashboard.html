@@ -722,7 +722,7 @@
       <div class="grid">
         <article class="panel wide">
           <h2>Analyse: Gästeeffekt</h2>
-          <p>Die Referenz ist eine modellierte Sicht ohne Gäste, nicht ein physischer Leerlauf. Für die Aufteilung werden saisonal getrennte Tagesmodelle gerechnet und danach auf Monatsebene aggregiert. Beim Strom basiert diese Sicht auf realem Stromverbrauch und nutzt bewusst eine robuste Spezifikation aus Nächtigungen, HDD18, Monatseffekten und Kalendereffekten statt mehrerer stark kollinearer Gastmerkmale. Die gestapelten Flächen zeigen Referenz ohne Gäste und Zusatz durch Gäste, die Vollinie den gemessenen Gesamtverbrauch.</p>
+          <p>Die Referenz ist eine modellierte Sicht ohne Gäste, nicht ein physischer Leerlauf. Für die Aufteilung werden saisonal getrennte Tagesmodelle gerechnet und danach auf Monatsebene aggregiert. Beim Strom basiert diese Sicht auf realem Stromverbrauch und nutzt bewusst einen ehrlicheren Ansatz ohne Monats-Dummies: nichtlinearer HDD18-Verlauf, Sonne, geschätzte belegte Appartements, Anreisen, Belegungswechsel und Kalendereffekte statt eines nach Monaten hingebogenen Fits. Die gestapelten Flächen zeigen Referenz ohne Gäste und Zusatz durch Gäste, die Vollinie den gemessenen Gesamtverbrauch.</p>
           <div class="chart-grid">
             <div class="chart" id="chart-analysis-guest-split-electricity"></div>
             <div class="chart" id="chart-analysis-guest-split-heat"></div>
