@@ -1128,7 +1128,7 @@ build_guest_value_dataset <- function(
         heat_total_guest_attributed_kwh
       ),
       scenario_note = paste(
-        "Revenue estimate uses occupied apartment nights = sum(ceiling(guest_nights / 2)).",
+        "Revenue estimate uses occupied apartment nights = sum(min(3, ceiling(guest_nights / 2))).",
         "Energy costs stay model-based and therefore remain an approximation."
       ),
       stringsAsFactors = FALSE
@@ -1404,7 +1404,7 @@ raw_daily$has_guests_flag <- ifelse(!is.na(raw_daily$nights) & raw_daily$nights 
     NA_real_,
     ifelse(
       raw_daily$nights > 0,
-      pmax(3, ceiling(raw_daily$nights / 2)),
+      pmin(3, ceiling(raw_daily$nights / 2)),
       0
     )
   )
@@ -1898,8 +1898,8 @@ seasonal_pricing <- data.frame(
   season_cluster = c("summer", "winter"),
   season_label = c("Sommer", "Winter"),
     assumed_revenue_basis = c(
-      "Geschaetzte Appartement-Naechte = Summe max(3, ceil(Naechtigungen / 2))",
-      "Geschaetzte Appartement-Naechte = Summe max(3, ceil(Naechtigungen / 2))"
+      "Geschaetzte Appartement-Naechte = Summe min(3, ceil(Naechtigungen / 2))",
+      "Geschaetzte Appartement-Naechte = Summe min(3, ceil(Naechtigungen / 2))"
     ),
   assumed_revenue_eur_per_night = c(75, 85),
   stringsAsFactors = FALSE
@@ -2119,7 +2119,7 @@ metadata <- list(
       revenue_assumption_unit = "estimated_occupied_apartment_nights",
       note = paste(
         "Revenue scenarios estimate sold apartment nights as",
-        "sum(ceiling(guest_nights / 2)) by day and season."
+        "sum(min(3, ceiling(guest_nights / 2))) by day and season."
       )
     ),
     guest_impact_baseline = list(
@@ -2148,7 +2148,7 @@ metadata <- list(
     "Guest impact baseline is documented as 'modellierte Referenz ohne Gaeste'. It is a model-based reference without guests, not a physical idle state.",
     "Guest impact models use has_guests_flag, log1p(guest_nights), occupied_apartments_estimated, arrivals, calendar effects and weather controls; Fernwaerme additionally uses HDD18 and HDD18^2.",
     "Validation output analysis_model_comparison.csv compares Verbrauch ~ hdd18, + has_guests_flag and + nights against extended operating models.",
-    "Guest value estimates convert guest nights to occupied apartment nights via max(3, ceil(guest_nights / 2)) on each day with guests.",
+    "Guest value estimates convert guest nights to occupied apartment nights via min(3, ceil(guest_nights / 2)) on each day with guests.",
     "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and monthly aggregation to reduce distortion from mixed summer/winter behavior.",
     ifelse(
       length(heat_fallback_segments),
