@@ -543,6 +543,58 @@ fit_heat_weather_model <- function(daily_dataset) {
   )
 }
 
+apply_monthly_total_offset_calibration <- function(
+  daily_dataset,
+  actual_col,
+  modeled_total_col,
+  baseline_col
+) {
+  month_keys <- format(daily_dataset$date, "%Y-%m")
+  daily_calibration <- rep(NA_real_, nrow(daily_dataset))
+  monthly_summary <- data.frame(
+    month = sort(unique(month_keys)),
+    calibration_kwh = NA_real_,
+    calibrated_days = 0L,
+    stringsAsFactors = FALSE
+  )
+
+  for (row_idx in seq_len(nrow(monthly_summary))) {
+    month_key <- monthly_summary$month[row_idx]
+    usable_rows <- month_keys == month_key &
+      !is.na(daily_dataset[[actual_col]]) &
+      !is.na(daily_dataset[[modeled_total_col]]) &
+      !is.na(daily_dataset[[baseline_col]])
+    usable_count <- sum(usable_rows)
+    if (!usable_count) {
+      next
+    }
+
+    monthly_delta_kwh <- safe_sum(daily_dataset[[actual_col]][usable_rows]) -
+      safe_sum(daily_dataset[[modeled_total_col]][usable_rows])
+    daily_calibration[usable_rows] <- monthly_delta_kwh / usable_count
+    monthly_summary$calibration_kwh[row_idx] <- monthly_delta_kwh
+    monthly_summary$calibrated_days[row_idx] <- usable_count
+  }
+
+  calibrated_total <- ifelse(
+    is.na(daily_dataset[[modeled_total_col]]),
+    NA_real_,
+    daily_dataset[[modeled_total_col]] + ifelse(is.na(daily_calibration), 0, daily_calibration)
+  )
+  calibrated_baseline <- ifelse(
+    is.na(daily_dataset[[baseline_col]]),
+    NA_real_,
+    daily_dataset[[baseline_col]] + ifelse(is.na(daily_calibration), 0, daily_calibration)
+  )
+
+  list(
+    daily_calibration = daily_calibration,
+    calibrated_total = calibrated_total,
+    calibrated_baseline = calibrated_baseline,
+    monthly_summary = monthly_summary
+  )
+}
+
 build_monthly_dataset <- function(daily_dataset, heat_monthly_export) {
   month_keys <- sort(unique(format(daily_dataset$date, "%Y-%m")))
   records <- lapply(month_keys, function(month_key) {
@@ -580,10 +632,17 @@ build_monthly_dataset <- function(daily_dataset, heat_monthly_export) {
       real_electricity_kwh = safe_sum(month_rows$real_electricity_kwh),
       real_electricity_no_guest_baseline_kwh = safe_sum(month_rows$real_electricity_no_guest_baseline_kwh),
       real_electricity_guest_impact_kwh = safe_sum(month_rows$real_electricity_guest_impact_kwh),
+      real_electricity_monthly_calibration_kwh = safe_sum(month_rows$real_electricity_monthly_calibration_daily_kwh),
+      real_electricity_modeled_total_structural_seasonal_kwh = safe_sum(
+        month_rows$real_electricity_modeled_total_structural_seasonal_kwh
+      ),
       real_electricity_modeled_total_seasonal_kwh = safe_sum(month_rows$real_electricity_modeled_total_seasonal_kwh),
       real_electricity_modeled_seasonal_kwh = safe_sum(month_rows$real_electricity_modeled_seasonal_kwh),
       real_electricity_no_guest_baseline_seasonal_kwh = safe_sum(month_rows$real_electricity_no_guest_baseline_seasonal_kwh),
       real_electricity_guest_impact_seasonal_kwh = safe_sum(month_rows$real_electricity_guest_impact_seasonal_kwh),
+      real_electricity_model_residual_structural_seasonal_kwh = safe_sum(
+        month_rows$real_electricity_model_residual_structural_seasonal_kwh
+      ),
       real_electricity_model_residual_seasonal_kwh = safe_sum(month_rows$real_electricity_model_residual_seasonal_kwh),
       real_electricity_guest_impact_fallback_days = safe_sum(month_rows$real_electricity_guest_impact_segment == "all_days_fallback"),
       heat_kwh = safe_sum(month_rows$heat_kwh),
@@ -1402,9 +1461,13 @@ analysis_daily$is_weekend_flag <- ifelse(
   ifelse(analysis_daily$weekday_iso %in% c(6L, 7L), 1L, 0L)
 )
 analysis_daily$occupancy_delta_nights <- ifelse(
-  is.na(analysis_daily$nights) | is.na(analysis_daily$nights_prev_day),
+  is.na(analysis_daily$nights),
   NA_real_,
-  analysis_daily$nights - analysis_daily$nights_prev_day
+  ifelse(
+    is.na(analysis_daily$nights_prev_day),
+    0,
+    analysis_daily$nights - analysis_daily$nights_prev_day
+  )
 )
 analysis_daily$occupancy_increase_flag <- ifelse(!is.na(analysis_daily$occupancy_delta_nights) & analysis_daily$occupancy_delta_nights > 0, 1L, 0L)
 analysis_daily$occupancy_drop_flag <- ifelse(!is.na(analysis_daily$occupancy_delta_nights) & analysis_daily$occupancy_delta_nights < 0, 1L, 0L)
@@ -1658,10 +1721,27 @@ analysis_guest_impact_seasonal <- rbind(
 analysis_daily$real_electricity_modeled_kwh <- real_electricity_guest_impact_model$prediction_actual
 analysis_daily$real_electricity_no_guest_baseline_kwh <- real_electricity_guest_impact_model$prediction_no_guests
 analysis_daily$real_electricity_guest_impact_kwh <- real_electricity_guest_impact_model$guest_impact
-analysis_daily$real_electricity_modeled_total_seasonal_kwh <- real_electricity_guest_impact_model_seasonal$prediction_actual
+analysis_daily$real_electricity_modeled_total_structural_seasonal_kwh <- real_electricity_guest_impact_model_seasonal$prediction_actual
+analysis_daily$real_electricity_modeled_total_seasonal_kwh <- analysis_daily$real_electricity_modeled_total_structural_seasonal_kwh
 analysis_daily$real_electricity_modeled_seasonal_kwh <- analysis_daily$real_electricity_modeled_total_seasonal_kwh
-analysis_daily$real_electricity_no_guest_baseline_seasonal_kwh <- real_electricity_guest_impact_model_seasonal$prediction_no_guests
+analysis_daily$real_electricity_no_guest_baseline_structural_seasonal_kwh <- real_electricity_guest_impact_model_seasonal$prediction_no_guests
+analysis_daily$real_electricity_no_guest_baseline_seasonal_kwh <- analysis_daily$real_electricity_no_guest_baseline_structural_seasonal_kwh
 analysis_daily$real_electricity_guest_impact_seasonal_kwh <- real_electricity_guest_impact_model_seasonal$guest_impact
+analysis_daily$real_electricity_model_residual_structural_seasonal_kwh <- ifelse(
+  is.na(analysis_daily$real_electricity_kwh) | is.na(analysis_daily$real_electricity_modeled_total_structural_seasonal_kwh),
+  NA_real_,
+  analysis_daily$real_electricity_kwh - analysis_daily$real_electricity_modeled_total_structural_seasonal_kwh
+)
+real_electricity_monthly_calibration <- apply_monthly_total_offset_calibration(
+  analysis_daily,
+  "real_electricity_kwh",
+  "real_electricity_modeled_total_structural_seasonal_kwh",
+  "real_electricity_no_guest_baseline_structural_seasonal_kwh"
+)
+analysis_daily$real_electricity_monthly_calibration_daily_kwh <- real_electricity_monthly_calibration$daily_calibration
+analysis_daily$real_electricity_modeled_total_seasonal_kwh <- real_electricity_monthly_calibration$calibrated_total
+analysis_daily$real_electricity_modeled_seasonal_kwh <- analysis_daily$real_electricity_modeled_total_seasonal_kwh
+analysis_daily$real_electricity_no_guest_baseline_seasonal_kwh <- real_electricity_monthly_calibration$calibrated_baseline
 analysis_daily$real_electricity_model_residual_seasonal_kwh <- ifelse(
   is.na(analysis_daily$real_electricity_kwh) | is.na(analysis_daily$real_electricity_modeled_total_seasonal_kwh),
   NA_real_,
@@ -1921,6 +2001,7 @@ feed_in_exceeds_pv_days_count <- safe_sum(analysis_daily$feed_in_exceeds_pv_flag
 metadata <- list(
   generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
   timezone = "Europe/Vienna",
+  real_electricity_calibration_method = "structural_daily_model_plus_monthly_total_offset_2025",
   source_files = list(
     strom = normalizePath(strom$path, winslash = "/", mustWork = TRUE),
     strom_einspeisung = normalizePath(feed_in$path, winslash = "/", mustWork = TRUE),
@@ -2013,6 +2094,11 @@ metadata <- list(
     real_electricity_guest_attributed_share = safe_divide(
       safe_sum(analysis_daily$real_electricity_guest_impact_seasonal_kwh),
       safe_sum(analysis_daily$real_electricity_kwh)
+    ),
+    real_electricity_monthly_calibration_kwh = safe_sum(analysis_daily$real_electricity_monthly_calibration_daily_kwh),
+    real_electricity_monthly_calibration_abs_kwh = safe_sum(abs(analysis_daily$real_electricity_monthly_calibration_daily_kwh)),
+    real_electricity_model_residual_structural_kwh = safe_sum(
+      analysis_daily$real_electricity_model_residual_structural_seasonal_kwh
     ),
     real_electricity_model_residual_kwh = safe_sum(analysis_daily$real_electricity_model_residual_seasonal_kwh),
     heat_additional_per_guest_night_kwh = heat_guest_summary$additional_per_guest_night_kwh[1],
@@ -2107,10 +2193,10 @@ metadata <- list(
     "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.",
     "Potential PV-to-heat is calculated as the theoretical overlap between measured grid feed-in and daily Fernwaerme demand.",
     "Guest impact baseline is documented as 'modellierte Referenz ohne Gaeste'. It is a model-based reference without guests, not a physical idle state.",
-    "Guest impact models use seasonally segmented daily Strom models with nonlinear HDD18, sunshine, estimated occupied apartments, arrivals, occupancy changes and calendar effects; Fernwaerme uses HDD18, HDD18^2, log1p(guest_nights), occupied_apartments_estimated, arrivals and calendar effects.",
+    "Guest impact models use seasonally segmented daily Strom models with nonlinear HDD18, sunshine, estimated occupied apartments, arrivals, occupancy changes and calendar effects. Strom monthly totals are then calibrated with a neutral 2025 month offset that shifts baseline and modeled total equally while leaving guest impact unchanged; Fernwaerme uses HDD18, HDD18^2, log1p(guest_nights), occupied_apartments_estimated, arrivals and calendar effects.",
     "Validation output analysis_model_comparison.csv compares Verbrauch ~ hdd18, + has_guests_flag and + nights against extended operating models.",
     "Guest value estimates convert guest nights to occupied apartment nights via min(3, ceil(guest_nights / 2)) on each day with guests.",
-    "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and monthly aggregation to reduce distortion from mixed summer/winter behavior.",
+    "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and, for Strom, an additional transparent monthly total calibration on 2025 to keep monthly chart coverage close to the measured totals.",
     ifelse(
       length(heat_fallback_segments),
       paste(

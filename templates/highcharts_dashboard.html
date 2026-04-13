@@ -722,7 +722,7 @@
       <div class="grid">
         <article class="panel wide">
           <h2>Analyse: Gästeeffekt</h2>
-          <p>Die Referenz ist eine modellierte Sicht ohne Gäste, nicht ein physischer Leerlauf. Für die Aufteilung werden saisonal getrennte Tagesmodelle gerechnet und danach auf Monatsebene aggregiert. Beim Strom basiert diese Sicht auf realem Stromverbrauch und nutzt bewusst einen ehrlicheren Ansatz ohne Monats-Dummies: nichtlinearer HDD18-Verlauf, Sonne, geschätzte belegte Appartements, Anreisen, Belegungswechsel und Kalendereffekte statt eines nach Monaten hingebogenen Fits. Die gestapelten Flächen zeigen Referenz ohne Gäste und Zusatz durch Gäste, die Vollinie den gemessenen Gesamtverbrauch.</p>
+          <p>Die Referenz ist eine modellierte Sicht ohne Gäste, nicht ein physischer Leerlauf. Für die Aufteilung werden saisonal getrennte Tagesmodelle gerechnet und danach auf Monatsebene aggregiert. Beim Strom basiert diese Sicht auf realem Stromverbrauch und nutzt ein strukturelles Tagesmodell mit nichtlinearem HDD18-Verlauf, Sonne, geschätzten belegten Appartements, Anreisen, Belegungswechseln und Kalendereffekten. Zusätzlich wird 2025 je Monat ein neutraler Kalibrier-Offset auf Referenz und Modellgesamtwert gelegt, damit die Monatsdeckung nahe am gemessenen Verbrauch liegt, ohne den Gästeeffekt direkt aus der Monatskorrektur abzuleiten. Die gestapelten Flächen zeigen Referenz ohne Gäste und Zusatz durch Gäste, die Vollinie den gemessenen Gesamtverbrauch.</p>
           <div class="chart-grid">
             <div class="chart" id="chart-analysis-guest-split-electricity"></div>
             <div class="chart" id="chart-analysis-guest-split-heat"></div>
@@ -758,23 +758,14 @@
     <section class="dashboard-section">
       <div class="section-heading">
         <p class="section-kicker">Vergleiche</p>
-        <h2>Saison Und Ereignisse</h2>
-        <p>Zum Schluss werden die Daten in typische Management-Sichten gegliedert: saisonale Cluster und Ereignisgruppen. Diese Charts eignen sich gut für den Vergleich von Winter, Übergang und Sommer sowie für Vorher-Nachher-Betrachtungen.</p>
+        <h2>Saisonvergleich</h2>
+        <p>Zum Schluss werden die Daten in saisonale Cluster gegliedert. Der Chart eignet sich gut für den Vergleich von Winter, Übergang und Sommer in einer kompakten Management-Sicht.</p>
       </div>
       <div class="grid">
         <article class="panel">
           <h2>Analyse: Saisonvergleich</h2>
           <p>Winter, Übergangszeit und Sommer werden getrennt ausgewertet.</p>
           <div class="chart" id="chart-analysis-seasonal"></div>
-        </article>
-
-        <article class="panel wide">
-          <h2>Analyse: Ereignisse</h2>
-          <p>Die Ereignisanalyse ist in Niveau und Veränderung getrennt. So werden Durchschnittswerte und Vorher-Nachher-Effekte nicht mehr im selben Chart vermischt.</p>
-          <div class="chart-grid">
-            <div class="chart" id="chart-analysis-events-level"></div>
-            <div class="chart" id="chart-analysis-events-delta"></div>
-          </div>
         </article>
       </div>
     </section>
@@ -813,7 +804,6 @@
       const analysisDaily = data.analysis.daily;
       const analysisMonthly = data.analysis.monthly || rawMonthly;
       const analysisSeasonal = data.analysis.seasonal || [];
-      const eventSummary = data.analysis.event_summary || [];
       const guestImpact = data.analysis.guest_impact || [];
       const guestImpactSeasonal = data.analysis.guest_impact_seasonal || [];
       const guestValue = data.analysis.guest_value || [];
@@ -831,18 +821,6 @@
       const guestValueOrder = ['summer', 'winter'];
       const orderedGuestValue = guestValueOrder
         .map((key) => guestValue.find((row) => row.season_cluster === key))
-        .filter(Boolean);
-      const eventOrder = [
-        'all_days',
-        'guest_days',
-        'non_guest_days',
-        'occupancy_increase_days',
-        'occupancy_drop_days',
-        'winter_guest_days',
-        'winter_non_guest_days'
-      ];
-      const orderedEventSummary = eventOrder
-        .map((key) => eventSummary.find((row) => row.event_group === key))
         .filter(Boolean);
       const summary = data.metadata.summary;
       const heatModel = data.metadata.models ? data.metadata.models.heat_weather_baseline : null;
@@ -971,16 +949,6 @@
         winter: 'Winter',
         transition: 'Übergang',
         summer: 'Sommer'
-      })[value] || value;
-
-      const eventLabel = (value) => ({
-        all_days: 'Alle Tage',
-        guest_days: 'Gasttage',
-        non_guest_days: 'Ohne Gäste',
-        occupancy_increase_days: 'Mehr Nächtigungen',
-        occupancy_drop_days: 'Weniger Nächtigungen',
-        winter_guest_days: 'Winter mit Gästen',
-        winter_non_guest_days: 'Winter ohne Gäste'
       })[value] || value;
 
       const guestImpactSeasonRow = (metricKey, seasonKey) =>
@@ -1920,51 +1888,6 @@
         ]
       });
 
-      Highcharts.chart('chart-analysis-events-level', {
-        credits: { enabled: false },
-        title: { text: null },
-        chart: { inverted: true },
-        xAxis: {
-          categories: orderedEventSummary.map((row) => eventLabel(row.event_group))
-        },
-        yAxis: [{
-          title: { text: 'kWh pro Tag' }
-        }, {
-          title: { text: 'Ø Nächtigungen' },
-          opposite: true
-        }],
-        tooltip: { shared: true, valueDecimals: 2 },
-        plotOptions: { series: { borderRadius: 3 } },
-        series: [
-          { type: 'bar', name: 'Fernwärme', data: toCategorySeries(orderedEventSummary, 'avg_heat_kwh') },
-          { type: 'bar', name: 'Realer Strom', data: toCategorySeries(orderedEventSummary, 'avg_real_electricity_kwh') },
-          { type: 'line', name: 'Ø Nächtigungen', yAxis: 1, data: toCategorySeries(orderedEventSummary, 'avg_nights') }
-        ]
-      });
-
-      Highcharts.chart('chart-analysis-events-delta', {
-        credits: { enabled: false },
-        title: { text: null },
-        chart: { inverted: true },
-        xAxis: {
-          categories: orderedEventSummary.map((row) => eventLabel(row.event_group))
-        },
-        yAxis: {
-          title: { text: 'kWh' },
-          plotLines: [{
-            value: 0,
-            width: 1,
-            color: 'rgba(32, 49, 39, 0.35)'
-          }]
-        },
-        tooltip: { shared: true, valueDecimals: 2 },
-        plotOptions: { series: { borderRadius: 3 } },
-        series: [
-          { type: 'bar', name: 'FW wetterbereinigt', data: toCategorySeries(orderedEventSummary, 'avg_heat_weather_residual_kwh') },
-          { type: 'bar', name: 'FW Delta Vortag', data: toCategorySeries(orderedEventSummary, 'avg_heat_delta_prev_day_kwh') },
-          { type: 'bar', name: 'Realer Strom Delta Vortag', data: toCategorySeries(orderedEventSummary, 'avg_real_electricity_delta_prev_day_kwh') }
-        ]
-      });
     })();
   </script>
 </body>
