@@ -722,7 +722,7 @@
       <div class="grid">
         <article class="panel wide">
           <h2>Analyse: Gästeeffekt</h2>
-          <p>Die Referenz ist eine modellierte Sicht ohne Gäste, nicht ein physischer Leerlauf. Für die Aufteilung werden saisonal getrennte Tagesmodelle mit Gast-Flag, nichtlinearer Belegung, geschätzten belegten Appartements, Check-ins sowie Wetter- und Kalendereffekten gerechnet und danach auf Monatsebene aggregiert. Beim Strom basiert diese Sicht auf realem Stromverbrauch. Die gestapelten Flächen zeigen Referenz ohne Gäste und Zusatz durch Gäste, die Vollinie den gemessenen Gesamtverbrauch.</p>
+          <p>Die Referenz ist eine modellierte Sicht ohne Gäste, nicht ein physischer Leerlauf. Für die Aufteilung werden saisonal getrennte Tagesmodelle gerechnet und danach auf Monatsebene aggregiert. Beim Strom basiert diese Sicht auf realem Stromverbrauch und nutzt bewusst eine robuste Spezifikation aus Nächtigungen, HDD18, Monatseffekten und Kalendereffekten statt mehrerer stark kollinearer Gastmerkmale. Die gestapelten Flächen zeigen Referenz ohne Gäste und Zusatz durch Gäste, die Vollinie den gemessenen Gesamtverbrauch.</p>
           <div class="chart-grid">
             <div class="chart" id="chart-analysis-guest-split-electricity"></div>
             <div class="chart" id="chart-analysis-guest-split-heat"></div>
@@ -749,7 +749,7 @@
 
         <article class="panel wide">
           <h2>Analyse: Wertschöpfung als Saison-Szenario</h2>
-          <p>Sommer und Winter werden getrennt gerechnet. Die Erlösszenarien nutzen 75 EUR im Sommer und 85 EUR im Winter je Appartement/Nacht. Die Anzahl der verkauften Appartement-Nächte wird als Summe `max(3, ceil(Nächtigungen / 2))` je Tag geschätzt. Der Stromteil basiert auf realem Stromverbrauch und ist mit dem hinterlegten Tarif bewertet; der Heizteil bleibt bewusst als Preisformel offen.</p>
+          <p>Sommer und Winter werden getrennt gerechnet. Die Erlösszenarien nutzen 75 EUR im Sommer und 85 EUR im Winter je Appartement/Nacht. Die Anzahl der verkauften Appartement-Nächte wird als Summe `min(3, ceil(Nächtigungen / 2))` je Tag geschätzt. Der Stromteil basiert auf realem Stromverbrauch und ist mit dem hinterlegten Tarif bewertet; der Heizteil bleibt bewusst als Preisformel offen.</p>
           <div class="value-grid" id="guest-value-cards"></div>
         </article>
       </div>
@@ -1021,8 +1021,7 @@
           return 'n/a';
         }
         return formula
-          .replace(/heat_tariff_ex_vat_eur_per_kwh/g, 'FW-Preis exkl. USt')
-          .replace(/heat_tariff_inc_vat_eur_per_kwh/g, 'FW-Preis inkl. USt');
+          .replace(/heat_tariff_gross_eur_per_kwh/g, 'FW-Preis brutto');
       };
 
       const requiredModelOrder = [
@@ -1167,7 +1166,7 @@
             <p>${displayText(row.assumed_revenue_basis)}</p>
             <div class="value-metrics">
               <div class="value-metric">
-                <span class="label">Appartementpreis</span>
+                <span class="label">Appartementpreis brutto</span>
                 <span class="value">${fmtCurrency(row.assumed_revenue_eur_per_night)}</span>
               </div>
               <div class="value-metric">
@@ -1184,24 +1183,22 @@
               </div>
               <div class="value-metric">
                 <span class="label">Stromkosten Gäste gesamt</span>
-                <span class="value">${fmtCurrency(row.electricity_cost_total_guest_attributed_ex_vat_eur)} exkl.<br>${fmtCurrency(row.electricity_cost_total_guest_attributed_inc_vat_eur)} inkl.</span>
+                <span class="value">${fmtCurrency(row.electricity_cost_total_guest_attributed_gross_eur)} brutto</span>
               </div>
               <div class="value-metric">
                 <span class="label">Deckungsbeitrag vor Heiztarif</span>
-                <span class="value">${fmtCurrency(row.contribution_after_electricity_ex_vat_eur, 0)} exkl.<br>${fmtCurrency(row.contribution_after_electricity_inc_vat_eur, 0)} inkl.</span>
+                <span class="value">${fmtCurrency(row.contribution_after_electricity_gross_eur, 0)} brutto</span>
               </div>
             </div>
             <div class="formula">
               <strong>Erlös</strong><br>
               ${fmt(row.estimated_occupied_apartment_nights, 0)} Appartement-Nächte * ${fmtCurrency(row.assumed_revenue_eur_per_night)}<br><br>
               <strong>Heizkosten</strong><br>
-              ${fmt(row.heat_total_guest_attributed_kwh, 0)} kWh * Fernwärmepreis je kWh<br><br>
+              ${fmt(row.heat_total_guest_attributed_kwh, 0)} kWh * Fernwärmepreis brutto je kWh<br><br>
               <strong>Mehrverbrauch je Gastnacht</strong><br>
               Strom ${fmt(row.electricity_additional_per_guest_night_kwh, 2)} kWh, FW ${fmt(row.heat_additional_per_guest_night_kwh, 2)} kWh<br><br>
-              <strong>Deckungsbeitrag exkl. USt</strong><br>
-              ${prettyFormula(row.net_contribution_formula_ex_vat)}<br><br>
-              <strong>Deckungsbeitrag inkl. USt</strong><br>
-              ${prettyFormula(row.net_contribution_formula_inc_vat)}
+              <strong>Deckungsbeitrag brutto</strong><br>
+              ${prettyFormula(row.net_contribution_formula_gross)}
             </div>
             <p class="card-note">${displayText(row.scenario_note)}</p>
           </article>

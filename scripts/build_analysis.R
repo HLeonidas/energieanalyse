@@ -974,10 +974,8 @@ build_guest_value_dataset <- function(
   seasonal_guest_impact,
   daily_dataset,
   seasonal_pricing,
-  electricity_tariff_ex_vat_eur_per_kwh,
-  electricity_tariff_inc_vat_eur_per_kwh,
-  heat_tariff_ex_vat_eur_per_kwh = NA_real_,
-  heat_tariff_inc_vat_eur_per_kwh = NA_real_
+  electricity_tariff_gross_eur_per_kwh,
+  heat_tariff_gross_eur_per_kwh = NA_real_
 ) {
   seasonal_lookup <- function(metric_key, season_name) {
     seasonal_guest_impact[
@@ -1018,29 +1016,17 @@ build_guest_value_dataset <- function(
     )
     electricity_total_guest_attributed_kwh <- electricity_summary$total_guest_attributed_kwh[1]
     heat_total_guest_attributed_kwh <- heat_summary$total_guest_attributed_kwh[1]
-    electricity_cost_ex_vat_eur <- electricity_additional_kwh * electricity_tariff_ex_vat_eur_per_kwh
-    electricity_cost_inc_vat_eur <- electricity_additional_kwh * electricity_tariff_inc_vat_eur_per_kwh
-    electricity_cost_total_ex_vat_eur <- electricity_total_guest_attributed_kwh * electricity_tariff_ex_vat_eur_per_kwh
-    electricity_cost_total_inc_vat_eur <- electricity_total_guest_attributed_kwh * electricity_tariff_inc_vat_eur_per_kwh
-    heat_cost_ex_vat_eur <- ifelse(
-      is.na(heat_tariff_ex_vat_eur_per_kwh),
+    electricity_cost_gross_eur <- electricity_additional_kwh * electricity_tariff_gross_eur_per_kwh
+    electricity_cost_total_gross_eur <- electricity_total_guest_attributed_kwh * electricity_tariff_gross_eur_per_kwh
+    heat_cost_gross_eur <- ifelse(
+      is.na(heat_tariff_gross_eur_per_kwh),
       NA_real_,
-      heat_additional_kwh * heat_tariff_ex_vat_eur_per_kwh
+      heat_additional_kwh * heat_tariff_gross_eur_per_kwh
     )
-    heat_cost_inc_vat_eur <- ifelse(
-      is.na(heat_tariff_inc_vat_eur_per_kwh),
+    heat_cost_total_gross_eur <- ifelse(
+      is.na(heat_tariff_gross_eur_per_kwh),
       NA_real_,
-      heat_additional_kwh * heat_tariff_inc_vat_eur_per_kwh
-    )
-    heat_cost_total_ex_vat_eur <- ifelse(
-      is.na(heat_tariff_ex_vat_eur_per_kwh),
-      NA_real_,
-      heat_total_guest_attributed_kwh * heat_tariff_ex_vat_eur_per_kwh
-    )
-    heat_cost_total_inc_vat_eur <- ifelse(
-      is.na(heat_tariff_inc_vat_eur_per_kwh),
-      NA_real_,
-      heat_total_guest_attributed_kwh * heat_tariff_inc_vat_eur_per_kwh
+      heat_total_guest_attributed_kwh * heat_tariff_gross_eur_per_kwh
     )
 
     data.frame(
@@ -1065,71 +1051,40 @@ build_guest_value_dataset <- function(
       heat_additional_per_guest_night_kwh = heat_additional_kwh,
       electricity_total_guest_attributed_kwh = electricity_total_guest_attributed_kwh,
       heat_total_guest_attributed_kwh = heat_total_guest_attributed_kwh,
-      electricity_tariff_ex_vat_eur_per_kwh = electricity_tariff_ex_vat_eur_per_kwh,
-      electricity_tariff_inc_vat_eur_per_kwh = electricity_tariff_inc_vat_eur_per_kwh,
-      electricity_cost_per_additional_guest_night_ex_vat_eur = electricity_cost_ex_vat_eur,
-      electricity_cost_per_additional_guest_night_inc_vat_eur = electricity_cost_inc_vat_eur,
-      electricity_cost_total_guest_attributed_ex_vat_eur = electricity_cost_total_ex_vat_eur,
-      electricity_cost_total_guest_attributed_inc_vat_eur = electricity_cost_total_inc_vat_eur,
-      heat_tariff_ex_vat_eur_per_kwh = heat_tariff_ex_vat_eur_per_kwh,
-      heat_tariff_inc_vat_eur_per_kwh = heat_tariff_inc_vat_eur_per_kwh,
-      heat_cost_per_additional_guest_night_ex_vat_eur = heat_cost_ex_vat_eur,
-      heat_cost_per_additional_guest_night_inc_vat_eur = heat_cost_inc_vat_eur,
-      heat_cost_total_guest_attributed_ex_vat_eur = heat_cost_total_ex_vat_eur,
-      heat_cost_total_guest_attributed_inc_vat_eur = heat_cost_total_inc_vat_eur,
-      contribution_after_electricity_ex_vat_eur = estimated_revenue_total_eur - electricity_cost_total_ex_vat_eur,
-      contribution_after_electricity_inc_vat_eur = estimated_revenue_total_eur - electricity_cost_total_inc_vat_eur,
-      contribution_after_energy_ex_vat_eur = ifelse(
-        is.na(heat_cost_total_ex_vat_eur),
+      electricity_tariff_gross_eur_per_kwh = electricity_tariff_gross_eur_per_kwh,
+      electricity_cost_per_additional_guest_night_gross_eur = electricity_cost_gross_eur,
+      electricity_cost_total_guest_attributed_gross_eur = electricity_cost_total_gross_eur,
+      heat_tariff_gross_eur_per_kwh = heat_tariff_gross_eur_per_kwh,
+      heat_cost_per_additional_guest_night_gross_eur = heat_cost_gross_eur,
+      heat_cost_total_guest_attributed_gross_eur = heat_cost_total_gross_eur,
+      contribution_after_electricity_gross_eur = estimated_revenue_total_eur - electricity_cost_total_gross_eur,
+      contribution_after_energy_gross_eur = ifelse(
+        is.na(heat_cost_total_gross_eur),
         NA_real_,
-        estimated_revenue_total_eur - electricity_cost_total_ex_vat_eur - heat_cost_total_ex_vat_eur
+        estimated_revenue_total_eur - electricity_cost_total_gross_eur - heat_cost_total_gross_eur
       ),
-      contribution_after_energy_inc_vat_eur = ifelse(
-        is.na(heat_cost_total_inc_vat_eur),
-        NA_real_,
-        estimated_revenue_total_eur - electricity_cost_total_inc_vat_eur - heat_cost_total_inc_vat_eur
-      ),
-      heat_cost_formula_ex_vat = ifelse(
+      heat_cost_formula_gross = ifelse(
         is.na(heat_total_guest_attributed_kwh),
         NA_character_,
-        sprintf("%.2f * heat_tariff_ex_vat_eur_per_kwh", heat_total_guest_attributed_kwh)
+        sprintf("%.2f * heat_tariff_gross_eur_per_kwh", heat_total_guest_attributed_kwh)
       ),
-      heat_cost_formula_inc_vat = ifelse(
-        is.na(heat_total_guest_attributed_kwh),
-        NA_character_,
-        sprintf("%.2f * heat_tariff_inc_vat_eur_per_kwh", heat_total_guest_attributed_kwh)
-      ),
-      net_contribution_formula_ex_vat = ifelse(
+      net_contribution_formula_gross = ifelse(
         is.na(heat_total_guest_attributed_kwh),
         NA_character_,
         sprintf(
-          "%.2f - %.2f - %.2f * heat_tariff_ex_vat_eur_per_kwh",
+          "%.2f - %.2f - %.2f * heat_tariff_gross_eur_per_kwh",
           estimated_revenue_total_eur,
-          electricity_cost_total_ex_vat_eur,
+          electricity_cost_total_gross_eur,
           heat_total_guest_attributed_kwh
         )
       ),
-      net_contribution_formula_inc_vat = ifelse(
-        is.na(heat_total_guest_attributed_kwh),
-        NA_character_,
-        sprintf(
-          "%.2f - %.2f - %.2f * heat_tariff_inc_vat_eur_per_kwh",
-          estimated_revenue_total_eur,
-          electricity_cost_total_inc_vat_eur,
-          heat_total_guest_attributed_kwh
-        )
-      ),
-      break_even_heat_tariff_ex_vat_eur_per_kwh = safe_divide(
-        estimated_revenue_total_eur - electricity_cost_total_ex_vat_eur,
-        heat_total_guest_attributed_kwh
-      ),
-      break_even_heat_tariff_inc_vat_eur_per_kwh = safe_divide(
-        estimated_revenue_total_eur - electricity_cost_total_inc_vat_eur,
+      break_even_heat_tariff_gross_eur_per_kwh = safe_divide(
+        estimated_revenue_total_eur - electricity_cost_total_gross_eur,
         heat_total_guest_attributed_kwh
       ),
       scenario_note = paste(
         "Revenue estimate uses occupied apartment nights = sum(min(3, ceiling(guest_nights / 2))).",
-        "Energy costs stay model-based and therefore remain an approximation."
+        "Energy costs are shown only as gross values and stay model-based, so they remain an approximation."
       ),
       stringsAsFactors = FALSE
     )
@@ -1430,6 +1385,7 @@ analysis_daily$nights_sq <- ifelse(
 )
 analysis_daily$weekday_iso <- as.integer(format(analysis_daily$date, "%u"))
 analysis_daily$weekday_label <- weekday_label_from_iso(analysis_daily$weekday_iso)
+analysis_daily$month_num <- factor(format(analysis_daily$date, "%m"))
 analysis_daily$is_weekend_flag <- ifelse(
   is.na(analysis_daily$weekday_iso),
   NA_integer_,
@@ -1522,22 +1478,15 @@ analysis_daily$heat_weather_residual_delta_prev_day_kwh <- ifelse(
 )
 
 real_electricity_formula_annual <- real_electricity_kwh ~
-  has_guests_flag +
-  log1p_nights +
-  occupied_apartments_estimated +
-  arrivals +
-  temp_mean_c +
-  sunshine_hours +
+  hdd18 +
+  nights +
   is_weekend_flag +
-  factor(season_cluster)
+  month_num
 real_electricity_formula_segmented <- real_electricity_kwh ~
-  has_guests_flag +
-  log1p_nights +
-  occupied_apartments_estimated +
-  arrivals +
-  temp_mean_c +
-  sunshine_hours +
-  is_weekend_flag
+  hdd18 +
+  nights +
+  is_weekend_flag +
+  month_num
 heat_formula_annual <- heat_kwh ~
   hdd18 +
   I(hdd18^2) +
@@ -1579,12 +1528,12 @@ real_electricity_model_comparison <- build_model_comparison_dataset(
     ),
     list(
       model_id = "model4_extended_operational",
-      model_label = "Modell 4: erweitert mit Wetter, Betrieb und Saison",
+      model_label = "Modell 4: Produktionsmodell mit HDD18, nights, weekend und Monat",
       formula = real_electricity_formula_annual
     ),
     list(
       model_id = "model5_extended_nonlinear",
-      model_label = "Modell 5: erweitert mit nights^2 und weekday",
+      model_label = "Modell 5: komplexes Gastmodell mit Wetter und Betriebsmerkmalen",
       formula = real_electricity_kwh ~
         has_guests_flag +
         log1p_nights +
@@ -1651,7 +1600,7 @@ real_electricity_guest_impact_model <- fit_guest_impact_model(
   real_electricity_formula_annual,
   "real_electricity",
   "Realer Stromverbrauch",
-  "Betriebs- und wetterkontrolliert"
+  "Naechtigungs-, HDD18-, Monats- und kalenderkontrolliert"
 )
 heat_guest_impact_model <- fit_guest_impact_model(
   analysis_daily,
@@ -1668,7 +1617,7 @@ real_electricity_guest_impact_model_seasonal <- fit_segmented_guest_impact_model
   real_electricity_formula_segmented,
   "real_electricity",
   "Realer Stromverbrauch",
-  "Betriebs- und wetterkontrolliert",
+  "Naechtigungs-, HDD18-, Monats- und kalenderkontrolliert",
   segment_col = "season_cluster",
   segment_levels = season_levels
 )
@@ -1908,8 +1857,7 @@ analysis_guest_value <- build_guest_value_dataset(
   analysis_guest_impact_seasonal,
   analysis_daily,
   seasonal_pricing,
-  electricity_tariff_ex_vat_eur_per_kwh = 0.125,
-  electricity_tariff_inc_vat_eur_per_kwh = 0.15
+  electricity_tariff_gross_eur_per_kwh = 0.15
 )
 real_electricity_guest_summary <- analysis_guest_impact[analysis_guest_impact$metric_key == "real_electricity", , drop = FALSE]
 heat_guest_summary <- analysis_guest_impact[analysis_guest_impact$metric_key == "heat", , drop = FALSE]
@@ -2109,10 +2057,8 @@ metadata <- list(
     pricing = list(
       summer_apartment_rate_eur_per_night = 75,
       winter_apartment_rate_eur_per_night = 85,
-      electricity_tariff_ex_vat_eur_per_kwh = 0.125,
-      electricity_tariff_inc_vat_eur_per_kwh = 0.15,
-      heat_tariff_ex_vat_eur_per_kwh = NA_real_,
-      heat_tariff_inc_vat_eur_per_kwh = NA_real_
+      electricity_tariff_gross_eur_per_kwh = 0.15,
+      heat_tariff_gross_eur_per_kwh = NA_real_
     ),
     economic_interpretation = list(
       occupancy_model_unit = "guest_nights",
@@ -2146,7 +2092,7 @@ metadata <- list(
     "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.",
     "Potential PV-to-heat is calculated as the theoretical overlap between measured grid feed-in and daily Fernwaerme demand.",
     "Guest impact baseline is documented as 'modellierte Referenz ohne Gaeste'. It is a model-based reference without guests, not a physical idle state.",
-    "Guest impact models use has_guests_flag, log1p(guest_nights), occupied_apartments_estimated, arrivals, calendar effects and weather controls; Fernwaerme additionally uses HDD18 and HDD18^2.",
+    "Guest impact models use nights, HDD18, month effects and calendar effects for Strom; Fernwaerme uses HDD18, HDD18^2, log1p(guest_nights), occupied_apartments_estimated, arrivals and calendar effects.",
     "Validation output analysis_model_comparison.csv compares Verbrauch ~ hdd18, + has_guests_flag and + nights against extended operating models.",
     "Guest value estimates convert guest nights to occupied apartment nights via min(3, ceil(guest_nights / 2)) on each day with guests.",
     "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and monthly aggregation to reduce distortion from mixed summer/winter behavior.",
@@ -2161,7 +2107,7 @@ metadata <- list(
       "No Fernwaerme seasonal fallback segments were required after the todo4 model upgrade."
     ),
     "Seasonal guest value scenarios use apartment-night prices of 75 EUR in summer and 85 EUR in winter.",
-    "A heat tariff is not yet available in the repository. Additional heating cost per guest night is therefore shown as kWh and as a price formula, not as a fixed EUR amount.",
+    "A heat tariff is not yet available in the repository. Additional heating cost per guest night is therefore shown as kWh and as a gross-price formula, not as a fixed EUR amount.",
     "Negative precipitation values are treated as 0 mm and flagged via precipitation_negative_flag.",
     "Blank snow depth values stay NA and are flagged via snow_depth_missing_flag."
   )
