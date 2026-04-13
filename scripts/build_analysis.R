@@ -59,6 +59,10 @@ safe_divide <- function(num, den) {
   ifelse(is.na(num) | is.na(den) | den == 0, NA_real_, num / den)
 }
 
+clamp_between <- function(x, lower, upper) {
+  ifelse(is.na(x) | is.na(lower) | is.na(upper), NA_real_, pmin(pmax(x, lower), upper))
+}
+
 rolling_mean <- function(x, window = 7L) {
   out <- rep(NA_real_, length(x))
   for (i in seq_along(x)) {
@@ -113,6 +117,98 @@ lag_vec <- function(x) {
     return(x)
   }
   c(NA, head(x, -1))
+}
+
+weekday_label_from_iso <- function(weekday_iso) {
+  labels <- c("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
+  out <- rep(NA_character_, length(weekday_iso))
+  valid <- !is.na(weekday_iso) & weekday_iso >= 1 & weekday_iso <= 7
+  out[valid] <- labels[weekday_iso[valid]]
+  out
+}
+
+make_no_guest_scenario <- function(df) {
+  guest_zero_columns <- c(
+    "has_guests_flag",
+    "nights",
+    "log1p_nights",
+    "nights_sq",
+    "occupied_apartments_estimated",
+    "arrivals"
+  )
+  for (column_name in guest_zero_columns) {
+    if (column_name %in% names(df)) {
+      df[[column_name]] <- 0
+    }
+  }
+  df
+}
+
+build_model_comparison_dataset <- function(
+  daily_dataset,
+  target,
+  metric_key,
+  metric_label,
+  model_specs
+) {
+  comparison_rows <- lapply(model_specs, function(spec) {
+    formula <- spec$formula
+    needed_columns <- unique(all.vars(formula))
+    fit_rows <- stats::complete.cases(daily_dataset[, needed_columns, drop = FALSE])
+
+    if (sum(fit_rows) < 30) {
+      return(data.frame(
+        metric_key = metric_key,
+        metric_label = metric_label,
+        model_id = spec$model_id,
+        model_label = spec$model_label,
+        formula = paste(deparse(formula), collapse = ""),
+        model_rows = sum(fit_rows),
+        r_squared = NA_real_,
+        adjusted_r_squared = NA_real_,
+        aic = NA_real_,
+        hdd18_coefficient_kwh = NA_real_,
+        has_guests_flag_coefficient_kwh = NA_real_,
+        nights_coefficient_kwh = NA_real_,
+        log1p_nights_coefficient_kwh = NA_real_,
+        nights_sq_coefficient_kwh = NA_real_,
+        occupied_apartments_estimated_coefficient_kwh = NA_real_,
+        arrivals_coefficient_kwh = NA_real_,
+        temp_mean_c_coefficient_kwh = NA_real_,
+        sunshine_hours_coefficient_kwh = NA_real_,
+        is_weekend_flag_coefficient_kwh = NA_real_,
+        stringsAsFactors = FALSE
+      ))
+    }
+
+    model <- stats::lm(formula, data = daily_dataset[fit_rows, , drop = FALSE])
+    model_summary <- summary(model)
+
+    data.frame(
+      metric_key = metric_key,
+      metric_label = metric_label,
+      model_id = spec$model_id,
+      model_label = spec$model_label,
+      formula = paste(deparse(formula), collapse = ""),
+      model_rows = sum(fit_rows),
+      r_squared = unname(model_summary$r.squared),
+      adjusted_r_squared = unname(model_summary$adj.r.squared),
+      aic = stats::AIC(model),
+      hdd18_coefficient_kwh = safe_coef(model, "hdd18"),
+      has_guests_flag_coefficient_kwh = safe_coef(model, "has_guests_flag"),
+      nights_coefficient_kwh = safe_coef(model, "nights"),
+      log1p_nights_coefficient_kwh = safe_coef(model, "log1p_nights"),
+      nights_sq_coefficient_kwh = safe_coef(model, "nights_sq"),
+      occupied_apartments_estimated_coefficient_kwh = safe_coef(model, "occupied_apartments_estimated"),
+      arrivals_coefficient_kwh = safe_coef(model, "arrivals"),
+      temp_mean_c_coefficient_kwh = safe_coef(model, "temp_mean_c"),
+      sunshine_hours_coefficient_kwh = safe_coef(model, "sunshine_hours"),
+      is_weekend_flag_coefficient_kwh = safe_coef(model, "is_weekend_flag"),
+      stringsAsFactors = FALSE
+    )
+  })
+
+  do.call(rbind, comparison_rows)
 }
 
 season_cluster_from_date <- function(date) {
@@ -262,7 +358,17 @@ load_fernwaerme <- function(directory) {
   list(path = path, daily = daily, monthly = monthly)
 }
 
-load_strom <- function(directory) {
+load_kelag_profile <- function(
+  directory,
+  value_col,
+  interval_col,
+  replacement_interval_col,
+  replacement_share_col,
+  peak_col = NULL,
+  baseload_col = NULL,
+  night_col = NULL,
+  daytime_col = NULL
+) {
   path <- sort(list.files(directory, pattern = "\\.csv$", full.names = TRUE))[1]
   header_lines <- readLines(path, warn = FALSE, encoding = "UTF-8", n = 7)
   meta <- parse_header_kv(header_lines[1:6])
@@ -292,21 +398,27 @@ load_strom <- function(directory) {
 
   groups <- split(raw, raw$date)
   daily <- do.call(rbind, lapply(groups, function(day_rows) {
-    data.frame(
-      date = unique(day_rows$date)[1],
-      electricity_kwh = safe_sum(day_rows$kwh),
-      electricity_peak_kw = safe_max(day_rows$kwh) * 4,
-      electricity_baseload_kw_p10 = safe_quantile(day_rows$kwh, 0.10) * 4,
-      electricity_intervals = nrow(day_rows),
-      electricity_replacement_intervals = sum(day_rows$status_class == "replacement", na.rm = TRUE),
-      electricity_replacement_share = safe_divide(
-        sum(day_rows$status_class == "replacement", na.rm = TRUE),
-        nrow(day_rows)
-      ),
-      electricity_night_kwh = safe_sum(day_rows$kwh[day_rows$hour < 6]),
-      electricity_daytime_kwh = safe_sum(day_rows$kwh[day_rows$hour >= 8 & day_rows$hour < 20]),
-      stringsAsFactors = FALSE
+    record <- list(date = unique(day_rows$date)[1])
+    record[[value_col]] <- safe_sum(day_rows$kwh)
+    record[[interval_col]] <- nrow(day_rows)
+    record[[replacement_interval_col]] <- sum(day_rows$status_class == "replacement", na.rm = TRUE)
+    record[[replacement_share_col]] <- safe_divide(
+      sum(day_rows$status_class == "replacement", na.rm = TRUE),
+      nrow(day_rows)
     )
+    if (!is.null(peak_col)) {
+      record[[peak_col]] <- safe_max(day_rows$kwh) * 4
+    }
+    if (!is.null(baseload_col)) {
+      record[[baseload_col]] <- safe_quantile(day_rows$kwh, 0.10) * 4
+    }
+    if (!is.null(night_col)) {
+      record[[night_col]] <- safe_sum(day_rows$kwh[day_rows$hour < 6])
+    }
+    if (!is.null(daytime_col)) {
+      record[[daytime_col]] <- safe_sum(day_rows$kwh[day_rows$hour >= 8 & day_rows$hour < 20])
+    }
+    as.data.frame(record, stringsAsFactors = FALSE)
   }))
   daily <- daily[order(daily$date), ]
 
@@ -314,6 +426,30 @@ load_strom <- function(directory) {
   names(raw_out) <- c("timestamp_iso", "timestamp_ms", "date", "date_local", "time_local", "kwh", "status", "status_class")
 
   list(path = path, meta = meta, raw = raw_out, daily = daily)
+}
+
+load_strom <- function(directory) {
+  load_kelag_profile(
+    directory = directory,
+    value_col = "electricity_kwh",
+    interval_col = "electricity_intervals",
+    replacement_interval_col = "electricity_replacement_intervals",
+    replacement_share_col = "electricity_replacement_share",
+    peak_col = "electricity_peak_kw",
+    baseload_col = "electricity_baseload_kw_p10",
+    night_col = "electricity_night_kwh",
+    daytime_col = "electricity_daytime_kwh"
+  )
+}
+
+load_feed_in <- function(directory) {
+  load_kelag_profile(
+    directory = directory,
+    value_col = "electricity_feed_in_kwh",
+    interval_col = "feed_in_intervals",
+    replacement_interval_col = "feed_in_replacement_intervals",
+    replacement_share_col = "feed_in_replacement_share"
+  )
 }
 
 load_wetter <- function(directory) {
@@ -427,14 +563,24 @@ build_monthly_dataset <- function(daily_dataset, heat_monthly_export) {
       ),
       electricity_night_kwh = safe_sum(month_rows$electricity_night_kwh),
       electricity_daytime_kwh = safe_sum(month_rows$electricity_daytime_kwh),
-      electricity_no_guest_baseline_kwh = safe_sum(month_rows$electricity_no_guest_baseline_kwh),
-      electricity_guest_impact_kwh = safe_sum(month_rows$electricity_guest_impact_kwh),
-      electricity_modeled_total_seasonal_kwh = safe_sum(month_rows$electricity_modeled_total_seasonal_kwh),
-      electricity_modeled_seasonal_kwh = safe_sum(month_rows$electricity_modeled_seasonal_kwh),
-      electricity_no_guest_baseline_seasonal_kwh = safe_sum(month_rows$electricity_no_guest_baseline_seasonal_kwh),
-      electricity_guest_impact_seasonal_kwh = safe_sum(month_rows$electricity_guest_impact_seasonal_kwh),
-      electricity_model_residual_seasonal_kwh = safe_sum(month_rows$electricity_model_residual_seasonal_kwh),
-      electricity_guest_impact_fallback_days = safe_sum(month_rows$electricity_guest_impact_segment == "all_days_fallback"),
+      electricity_feed_in_kwh = safe_sum(month_rows$electricity_feed_in_kwh),
+      feed_in_intervals = safe_sum(month_rows$feed_in_intervals),
+      feed_in_replacement_intervals = safe_sum(month_rows$feed_in_replacement_intervals),
+      feed_in_replacement_share = safe_divide(
+        safe_sum(month_rows$feed_in_replacement_intervals),
+        safe_sum(month_rows$feed_in_intervals)
+      ),
+      electricity_self_consumption_raw_kwh = safe_sum(month_rows$electricity_self_consumption_raw_kwh),
+      electricity_self_consumption_kwh = safe_sum(month_rows$electricity_self_consumption_kwh),
+      real_electricity_kwh = safe_sum(month_rows$real_electricity_kwh),
+      real_electricity_no_guest_baseline_kwh = safe_sum(month_rows$real_electricity_no_guest_baseline_kwh),
+      real_electricity_guest_impact_kwh = safe_sum(month_rows$real_electricity_guest_impact_kwh),
+      real_electricity_modeled_total_seasonal_kwh = safe_sum(month_rows$real_electricity_modeled_total_seasonal_kwh),
+      real_electricity_modeled_seasonal_kwh = safe_sum(month_rows$real_electricity_modeled_seasonal_kwh),
+      real_electricity_no_guest_baseline_seasonal_kwh = safe_sum(month_rows$real_electricity_no_guest_baseline_seasonal_kwh),
+      real_electricity_guest_impact_seasonal_kwh = safe_sum(month_rows$real_electricity_guest_impact_seasonal_kwh),
+      real_electricity_model_residual_seasonal_kwh = safe_sum(month_rows$real_electricity_model_residual_seasonal_kwh),
+      real_electricity_guest_impact_fallback_days = safe_sum(month_rows$real_electricity_guest_impact_segment == "all_days_fallback"),
       heat_kwh = safe_sum(month_rows$heat_kwh),
       heat_volume_m3 = safe_sum(month_rows$heat_volume_m3),
       heat_approximated_days = safe_sum(month_rows$heat_approximated_flag),
@@ -449,10 +595,20 @@ build_monthly_dataset <- function(daily_dataset, heat_monthly_export) {
       heat_model_residual_seasonal_kwh = safe_sum(month_rows$heat_model_residual_seasonal_kwh),
       heat_guest_impact_fallback_days = safe_sum(month_rows$heat_guest_impact_segment == "all_days_fallback"),
       pv_kwh = safe_sum(month_rows$pv_kwh),
+      arrivals = safe_sum(month_rows$arrivals),
       pv_days_available = sum(!is.na(month_rows$pv_kwh)),
       nights = safe_sum(month_rows$nights),
+      occupied_apartment_nights_estimated = safe_sum(month_rows$occupied_apartments_estimated),
+      average_occupied_apartments_estimated_per_guest_day = safe_mean(
+        month_rows$occupied_apartments_estimated[month_rows$has_guests_flag == 1]
+      ),
+      weekend_days = safe_sum(month_rows$is_weekend_flag),
       days_with_guests = sum(!is.na(month_rows$nights) & month_rows$nights > 0),
       pv_missing_days = sum(is.na(month_rows$pv_kwh)),
+      feed_in_days_available = sum(!is.na(month_rows$electricity_feed_in_kwh)),
+      feed_in_missing_days = sum(is.na(month_rows$electricity_feed_in_kwh)),
+      real_electricity_days_available = sum(!is.na(month_rows$real_electricity_kwh)),
+      feed_in_exceeds_pv_days = safe_sum(month_rows$feed_in_exceeds_pv_flag),
       weather_days_available = safe_sum(month_rows$weather_data_available),
       temp_mean_c = safe_mean(month_rows$temp_mean_c),
       temp_min_c = safe_min(month_rows$temp_min_c),
@@ -475,50 +631,48 @@ build_monthly_dataset <- function(daily_dataset, heat_monthly_export) {
   monthly <- merge(monthly, heat_monthly_export, by = "month", all.x = TRUE)
   monthly$month_start_ms <- as.numeric(as.POSIXct(monthly$month_start, tz = "Europe/Vienna")) * 1000
   monthly$heat_delta_vs_export_kwh <- monthly$heat_kwh - monthly$heat_export_kwh
-  monthly$electricity_minus_pv_kwh <- ifelse(
-    is.na(monthly$electricity_kwh) | is.na(monthly$pv_kwh),
-    NA_real_,
-    monthly$electricity_kwh - monthly$pv_kwh
-  )
-  monthly$grid_need_after_pv_kwh <- ifelse(
-    is.na(monthly$electricity_minus_pv_kwh),
-    NA_real_,
-    pmax(monthly$electricity_minus_pv_kwh, 0)
-  )
-  monthly$pv_surplus_vs_load_kwh <- ifelse(
-    is.na(monthly$electricity_minus_pv_kwh),
-    NA_real_,
-    pmax(-monthly$electricity_minus_pv_kwh, 0)
-  )
   monthly$potential_pv_to_heat_kwh <- ifelse(
-    is.na(monthly$pv_surplus_vs_load_kwh) | is.na(monthly$heat_kwh),
+    is.na(monthly$electricity_feed_in_kwh) | is.na(monthly$heat_kwh),
     NA_real_,
-    pmin(monthly$pv_surplus_vs_load_kwh, monthly$heat_kwh)
+    pmin(monthly$electricity_feed_in_kwh, monthly$heat_kwh)
   )
   monthly$remaining_heat_after_pv_surplus_kwh <- ifelse(
-    is.na(monthly$pv_surplus_vs_load_kwh) | is.na(monthly$heat_kwh),
+    is.na(monthly$electricity_feed_in_kwh) | is.na(monthly$heat_kwh),
     NA_real_,
-    pmax(monthly$heat_kwh - monthly$pv_surplus_vs_load_kwh, 0)
+    pmax(monthly$heat_kwh - monthly$electricity_feed_in_kwh, 0)
   )
-  monthly$pv_generation_to_load_ratio <- safe_divide(monthly$pv_kwh, monthly$electricity_kwh)
-  monthly$potential_pv_coverage_ratio <- safe_divide(
-    pmin(monthly$pv_kwh, monthly$electricity_kwh),
-    monthly$electricity_kwh
+  monthly$pv_generation_to_load_ratio <- safe_divide(monthly$pv_kwh, monthly$real_electricity_kwh)
+  monthly$electricity_autarky_ratio <- safe_divide(
+    monthly$electricity_self_consumption_kwh,
+    monthly$real_electricity_kwh
+  )
+  monthly$pv_self_consumption_ratio <- safe_divide(
+    monthly$electricity_self_consumption_kwh,
+    monthly$pv_kwh
+  )
+  monthly$pv_feed_in_ratio <- safe_divide(
+    monthly$electricity_feed_in_kwh,
+    monthly$pv_kwh
   )
   monthly$potential_pv_to_heat_ratio <- safe_divide(
     monthly$potential_pv_to_heat_kwh,
     monthly$heat_kwh
   )
   monthly$electricity_kwh_per_night <- safe_divide(monthly$electricity_kwh, monthly$nights)
+  monthly$real_electricity_kwh_per_night <- safe_divide(monthly$real_electricity_kwh, monthly$nights)
   monthly$heat_kwh_per_night <- safe_divide(monthly$heat_kwh, monthly$nights)
   monthly$pv_kwh_per_night <- safe_divide(monthly$pv_kwh, monthly$nights)
-  monthly$electricity_guest_impact_share <- safe_divide(
-    monthly$electricity_guest_impact_kwh,
-    monthly$electricity_kwh
+  monthly$real_electricity_guest_impact_share <- safe_divide(
+    monthly$real_electricity_guest_impact_kwh,
+    monthly$real_electricity_kwh
   )
   monthly$heat_guest_impact_share <- safe_divide(
     monthly$heat_guest_impact_kwh,
     monthly$heat_kwh
+  )
+  monthly$heat_to_electricity_ratio <- safe_divide(
+    monthly$heat_kwh,
+    monthly$real_electricity_kwh
   )
   monthly$heat_kwh_per_hdd18 <- safe_divide(monthly$heat_kwh, monthly$hdd18)
   monthly$heat_kwh_per_hdd18_per_night <- safe_divide(monthly$heat_kwh, monthly$hdd18 * monthly$nights)
@@ -542,9 +696,19 @@ build_seasonal_dataset <- function(daily_dataset) {
       guest_days = safe_sum(rows$has_guests_flag),
       occupancy_drop_days = safe_sum(rows$occupancy_drop_flag),
       electricity_kwh = safe_sum(rows$electricity_kwh),
+      electricity_feed_in_kwh = safe_sum(rows$electricity_feed_in_kwh),
+      electricity_self_consumption_raw_kwh = safe_sum(rows$electricity_self_consumption_raw_kwh),
+      electricity_self_consumption_kwh = safe_sum(rows$electricity_self_consumption_kwh),
+      real_electricity_kwh = safe_sum(rows$real_electricity_kwh),
       heat_kwh = safe_sum(rows$heat_kwh),
       pv_kwh = safe_sum(rows$pv_kwh),
+      arrivals = safe_sum(rows$arrivals),
       nights = safe_sum(rows$nights),
+      occupied_apartment_nights_estimated = safe_sum(rows$occupied_apartments_estimated),
+      average_occupied_apartments_estimated_per_guest_day = safe_mean(
+        rows$occupied_apartments_estimated[rows$has_guests_flag == 1]
+      ),
+      weekend_days = safe_sum(rows$is_weekend_flag),
       temp_mean_c = safe_mean(rows$temp_mean_c),
       temp_min_c = safe_min(rows$temp_min_c),
       temp_max_c = safe_max(rows$temp_max_c),
@@ -553,16 +717,30 @@ build_seasonal_dataset <- function(daily_dataset) {
       hdd18 = safe_sum(rows$hdd18),
       frost_days = safe_sum(rows$frost_day_flag),
       heat_weather_residual_kwh = safe_sum(rows$heat_weather_residual_kwh),
-      electricity_guest_impact_kwh = safe_sum(rows$electricity_guest_impact_kwh),
+      real_electricity_guest_impact_kwh = safe_sum(rows$real_electricity_guest_impact_kwh),
       heat_guest_impact_kwh = safe_sum(rows$heat_guest_impact_kwh),
       potential_pv_to_heat_kwh = safe_sum(rows$potential_pv_to_heat_kwh),
       remaining_heat_after_pv_surplus_kwh = safe_sum(rows$remaining_heat_after_pv_surplus_kwh),
+      feed_in_exceeds_pv_days = safe_sum(rows$feed_in_exceeds_pv_flag),
       electricity_kwh_per_night = safe_divide(safe_sum(rows$electricity_kwh), safe_sum(rows$nights)),
+      real_electricity_kwh_per_night = safe_divide(safe_sum(rows$real_electricity_kwh), safe_sum(rows$nights)),
       heat_kwh_per_night = safe_divide(safe_sum(rows$heat_kwh), safe_sum(rows$nights)),
       heat_kwh_per_hdd18 = safe_divide(safe_sum(rows$heat_kwh), safe_sum(rows$hdd18)),
-      electricity_guest_impact_share = safe_divide(
-        safe_sum(rows$electricity_guest_impact_kwh),
-        safe_sum(rows$electricity_kwh)
+      electricity_autarky_ratio = safe_divide(
+        safe_sum(rows$electricity_self_consumption_kwh),
+        safe_sum(rows$real_electricity_kwh)
+      ),
+      pv_self_consumption_ratio = safe_divide(
+        safe_sum(rows$electricity_self_consumption_kwh),
+        safe_sum(rows$pv_kwh)
+      ),
+      pv_feed_in_ratio = safe_divide(
+        safe_sum(rows$electricity_feed_in_kwh),
+        safe_sum(rows$pv_kwh)
+      ),
+      real_electricity_guest_impact_share = safe_divide(
+        safe_sum(rows$real_electricity_guest_impact_kwh),
+        safe_sum(rows$real_electricity_kwh)
       ),
       heat_guest_impact_share = safe_divide(
         safe_sum(rows$heat_guest_impact_kwh),
@@ -603,16 +781,25 @@ build_event_summary <- function(daily_dataset) {
       event_group = group_name,
       days = nrow(rows),
       avg_nights = safe_mean(rows$nights),
+      avg_arrivals = safe_mean(rows$arrivals),
       avg_temp_mean_c = safe_mean(rows$temp_mean_c),
       avg_hdd18 = safe_mean(rows$hdd18),
+      avg_occupied_apartments_estimated = safe_mean(rows$occupied_apartments_estimated),
+      avg_is_weekend_flag = safe_mean(rows$is_weekend_flag),
       avg_heat_kwh = safe_mean(rows$heat_kwh),
       avg_heat_weather_residual_kwh = safe_mean(rows$heat_weather_residual_kwh),
       avg_heat_weather_adjusted_per_night_kwh = safe_mean(rows$heat_weather_adjusted_per_night_kwh),
       avg_electricity_kwh = safe_mean(rows$electricity_kwh),
+      avg_real_electricity_kwh = safe_mean(rows$real_electricity_kwh),
+      avg_electricity_feed_in_kwh = safe_mean(rows$electricity_feed_in_kwh),
+      avg_electricity_self_consumption_kwh = safe_mean(rows$electricity_self_consumption_kwh),
+      avg_pv_self_consumption_ratio = safe_mean(rows$pv_self_consumption_ratio),
+      avg_pv_feed_in_ratio = safe_mean(rows$pv_feed_in_ratio),
       avg_pv_kwh = safe_mean(rows$pv_kwh),
       avg_heat_delta_prev_day_kwh = safe_mean(rows$heat_kwh_delta_prev_day),
       avg_heat_weather_residual_delta_prev_day_kwh = safe_mean(rows$heat_weather_residual_delta_prev_day_kwh),
       avg_electricity_delta_prev_day_kwh = safe_mean(rows$electricity_kwh_delta_prev_day),
+      avg_real_electricity_delta_prev_day_kwh = safe_mean(rows$real_electricity_kwh_delta_prev_day),
       stringsAsFactors = FALSE
     )
   })
@@ -634,11 +821,22 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
         metric_key = metric_key,
         metric_label = metric_label,
         adjustment_label = adjustment_label,
+        baseline_definition = "modellierte Referenz ohne Gaeste",
         formula = paste(deparse(formula), collapse = ""),
         model_rows = sum(fit_rows),
         r_squared = NA_real_,
+        adjusted_r_squared = NA_real_,
         nights_coefficient_kwh = NA_real_,
+        log1p_nights_coefficient_kwh = NA_real_,
+        nights_sq_coefficient_kwh = NA_real_,
+        has_guests_flag_coefficient_kwh = NA_real_,
+        occupied_apartments_estimated_coefficient_kwh = NA_real_,
+        arrivals_coefficient_kwh = NA_real_,
         hdd18_coefficient_kwh = NA_real_,
+        hdd18_sq_coefficient_kwh = NA_real_,
+        temp_mean_c_coefficient_kwh = NA_real_,
+        sunshine_hours_coefficient_kwh = NA_real_,
+        is_weekend_flag_coefficient_kwh = NA_real_,
         baseline_no_guest_avg_on_guest_days_kwh = NA_real_,
         raw_guest_day_avg_kwh = NA_real_,
         raw_no_guest_day_avg_kwh = NA_real_,
@@ -649,6 +847,15 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
         total_guest_attributed_kwh = NA_real_,
         total_guest_attributed_share = NA_real_,
         total_guest_nights = safe_sum(daily_dataset$nights),
+        guest_days = safe_sum(daily_dataset$has_guests_flag),
+        average_guest_nights_per_guest_day = safe_mean(
+          daily_dataset$nights[!is.na(daily_dataset$has_guests_flag) & daily_dataset$has_guests_flag == 1]
+        ),
+        total_estimated_occupied_apartment_nights = safe_sum(daily_dataset$occupied_apartments_estimated),
+        average_occupied_apartments_estimated_per_guest_day = safe_mean(
+          daily_dataset$occupied_apartments_estimated[!is.na(daily_dataset$nights) & daily_dataset$nights > 0]
+        ),
+        negative_guest_impact_days = NA_real_,
         stringsAsFactors = FALSE
       ),
       prediction_actual = prediction_actual,
@@ -661,13 +868,12 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
   model <- stats::lm(formula, data = daily_dataset[fit_rows, , drop = FALSE])
   prediction_actual[fit_rows] <- as.numeric(stats::predict(model, newdata = daily_dataset[fit_rows, , drop = FALSE]))
 
-  baseline_data <- daily_dataset[fit_rows, , drop = FALSE]
-  baseline_data$nights <- 0
+  baseline_data <- make_no_guest_scenario(daily_dataset[fit_rows, , drop = FALSE])
   prediction_no_guests[fit_rows] <- as.numeric(stats::predict(model, newdata = baseline_data))
   guest_impact[fit_rows] <- prediction_actual[fit_rows] - prediction_no_guests[fit_rows]
 
-  guest_rows <- fit_rows & !is.na(daily_dataset$nights) & daily_dataset$nights > 0
-  no_guest_rows <- fit_rows & !is.na(daily_dataset$nights) & daily_dataset$nights == 0
+  guest_rows <- fit_rows & !is.na(daily_dataset$has_guests_flag) & daily_dataset$has_guests_flag == 1
+  no_guest_rows <- fit_rows & !is.na(daily_dataset$has_guests_flag) & daily_dataset$has_guests_flag == 0
   model_summary <- summary(model)
 
   baseline_no_guest_avg_on_guest_days_kwh <- safe_mean(prediction_no_guests[guest_rows])
@@ -679,27 +885,42 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
     raw_guest_day_avg_kwh - raw_no_guest_day_avg_kwh
   )
   raw_guest_day_delta_pct <- safe_divide(raw_guest_day_delta_kwh, raw_no_guest_day_avg_kwh)
-  additional_per_guest_night_kwh <- safe_coef(model, "nights")
+  additional_per_guest_night_kwh <- safe_divide(
+    safe_sum(guest_impact[guest_rows]),
+    safe_sum(daily_dataset$nights[guest_rows])
+  )
   additional_per_guest_night_pct_vs_baseline <- safe_divide(
     additional_per_guest_night_kwh,
     baseline_no_guest_avg_on_guest_days_kwh
   )
-  total_guest_attributed_kwh <- safe_sum(guest_impact[fit_rows])
+  total_guest_attributed_kwh <- safe_sum(guest_impact[guest_rows])
   total_guest_attributed_share <- safe_divide(
     total_guest_attributed_kwh,
     safe_sum(daily_dataset[[target]][fit_rows])
   )
+  negative_guest_impact_days <- sum(guest_rows & !is.na(guest_impact) & guest_impact < -1e-8)
 
   list(
     summary = data.frame(
       metric_key = metric_key,
       metric_label = metric_label,
       adjustment_label = adjustment_label,
+      baseline_definition = "modellierte Referenz ohne Gaeste",
       formula = paste(deparse(formula), collapse = ""),
       model_rows = sum(fit_rows),
       r_squared = unname(model_summary$r.squared),
-      nights_coefficient_kwh = additional_per_guest_night_kwh,
+      adjusted_r_squared = unname(model_summary$adj.r.squared),
+      nights_coefficient_kwh = safe_coef(model, "nights"),
+      log1p_nights_coefficient_kwh = safe_coef(model, "log1p_nights"),
+      nights_sq_coefficient_kwh = safe_coef(model, "nights_sq"),
+      has_guests_flag_coefficient_kwh = safe_coef(model, "has_guests_flag"),
+      occupied_apartments_estimated_coefficient_kwh = safe_coef(model, "occupied_apartments_estimated"),
+      arrivals_coefficient_kwh = safe_coef(model, "arrivals"),
       hdd18_coefficient_kwh = safe_coef(model, "hdd18"),
+      hdd18_sq_coefficient_kwh = safe_coef(model, "I(hdd18^2)"),
+      temp_mean_c_coefficient_kwh = safe_coef(model, "temp_mean_c"),
+      sunshine_hours_coefficient_kwh = safe_coef(model, "sunshine_hours"),
+      is_weekend_flag_coefficient_kwh = safe_coef(model, "is_weekend_flag"),
       baseline_no_guest_avg_on_guest_days_kwh = baseline_no_guest_avg_on_guest_days_kwh,
       raw_guest_day_avg_kwh = raw_guest_day_avg_kwh,
       raw_no_guest_day_avg_kwh = raw_no_guest_day_avg_kwh,
@@ -710,6 +931,15 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
       total_guest_attributed_kwh = total_guest_attributed_kwh,
       total_guest_attributed_share = total_guest_attributed_share,
       total_guest_nights = safe_sum(daily_dataset$nights[fit_rows]),
+      guest_days = safe_sum(daily_dataset$has_guests_flag[fit_rows]),
+      average_guest_nights_per_guest_day = safe_mean(
+        daily_dataset$nights[guest_rows]
+      ),
+      total_estimated_occupied_apartment_nights = safe_sum(daily_dataset$occupied_apartments_estimated[fit_rows]),
+      average_occupied_apartments_estimated_per_guest_day = safe_mean(
+        daily_dataset$occupied_apartments_estimated[guest_rows]
+      ),
+      negative_guest_impact_days = negative_guest_impact_days,
       stringsAsFactors = FALSE
     ),
     prediction_actual = prediction_actual,
@@ -718,14 +948,31 @@ fit_guest_impact_model <- function(daily_dataset, target, formula, metric_key, m
     model_summary = list(
       rows = sum(fit_rows),
       r_squared = unname(model_summary$r.squared),
-      nights_coefficient_kwh = additional_per_guest_night_kwh,
-      hdd18_coefficient_kwh = safe_coef(model, "hdd18")
+      adjusted_r_squared = unname(model_summary$adj.r.squared),
+      baseline_definition = "modellierte Referenz ohne Gaeste",
+      formula = paste(deparse(formula), collapse = ""),
+      nights_coefficient_kwh = safe_coef(model, "nights"),
+      log1p_nights_coefficient_kwh = safe_coef(model, "log1p_nights"),
+      nights_sq_coefficient_kwh = safe_coef(model, "nights_sq"),
+      has_guests_flag_coefficient_kwh = safe_coef(model, "has_guests_flag"),
+      occupied_apartments_estimated_coefficient_kwh = safe_coef(model, "occupied_apartments_estimated"),
+      arrivals_coefficient_kwh = safe_coef(model, "arrivals"),
+      hdd18_coefficient_kwh = safe_coef(model, "hdd18"),
+      hdd18_sq_coefficient_kwh = safe_coef(model, "I(hdd18^2)"),
+      temp_mean_c_coefficient_kwh = safe_coef(model, "temp_mean_c"),
+      sunshine_hours_coefficient_kwh = safe_coef(model, "sunshine_hours"),
+      is_weekend_flag_coefficient_kwh = safe_coef(model, "is_weekend_flag"),
+      guest_days = safe_sum(daily_dataset$has_guests_flag[fit_rows]),
+      average_guest_nights_per_guest_day = safe_mean(daily_dataset$nights[guest_rows]),
+      additional_per_guest_night_kwh = additional_per_guest_night_kwh,
+      negative_guest_impact_days = negative_guest_impact_days
     )
   )
 }
 
 build_guest_value_dataset <- function(
   seasonal_guest_impact,
+  daily_dataset,
   seasonal_pricing,
   electricity_tariff_ex_vat_eur_per_kwh,
   electricity_tariff_inc_vat_eur_per_kwh,
@@ -744,14 +991,37 @@ build_guest_value_dataset <- function(
   rows <- lapply(seq_len(nrow(seasonal_pricing)), function(idx) {
     pricing_row <- seasonal_pricing[idx, , drop = FALSE]
     season_name <- pricing_row$season_cluster[1]
-    assumed_revenue_eur <- pricing_row$assumed_revenue_eur_per_night[1]
-    electricity_summary <- seasonal_lookup("electricity", season_name)
+    apartment_rate_eur <- pricing_row$assumed_revenue_eur_per_night[1]
+    electricity_summary <- seasonal_lookup("real_electricity", season_name)
     heat_summary <- seasonal_lookup("heat", season_name)
+    season_rows <- daily_dataset[
+      daily_dataset$season_cluster == season_name &
+        !is.na(daily_dataset$nights) &
+        daily_dataset$nights > 0,
+      ,
+      drop = FALSE
+    ]
 
     electricity_additional_kwh <- electricity_summary$additional_per_guest_night_kwh[1]
     heat_additional_kwh <- heat_summary$additional_per_guest_night_kwh[1]
+    total_guest_nights <- electricity_summary$total_guest_nights[1]
+    total_estimated_occupied_apartment_nights <- safe_sum(season_rows$occupied_apartments_estimated)
+    average_occupied_apartments_per_guest_day <- safe_mean(season_rows$occupied_apartments_estimated)
+    estimated_revenue_total_eur <- total_estimated_occupied_apartment_nights * apartment_rate_eur
+    estimated_revenue_per_guest_night_eur <- safe_divide(
+      estimated_revenue_total_eur,
+      total_guest_nights
+    )
+    estimated_revenue_per_guest_day_eur <- safe_divide(
+      estimated_revenue_total_eur,
+      electricity_summary$guest_days[1]
+    )
+    electricity_total_guest_attributed_kwh <- electricity_summary$total_guest_attributed_kwh[1]
+    heat_total_guest_attributed_kwh <- heat_summary$total_guest_attributed_kwh[1]
     electricity_cost_ex_vat_eur <- electricity_additional_kwh * electricity_tariff_ex_vat_eur_per_kwh
     electricity_cost_inc_vat_eur <- electricity_additional_kwh * electricity_tariff_inc_vat_eur_per_kwh
+    electricity_cost_total_ex_vat_eur <- electricity_total_guest_attributed_kwh * electricity_tariff_ex_vat_eur_per_kwh
+    electricity_cost_total_inc_vat_eur <- electricity_total_guest_attributed_kwh * electricity_tariff_inc_vat_eur_per_kwh
     heat_cost_ex_vat_eur <- ifelse(
       is.na(heat_tariff_ex_vat_eur_per_kwh),
       NA_real_,
@@ -762,83 +1032,104 @@ build_guest_value_dataset <- function(
       NA_real_,
       heat_additional_kwh * heat_tariff_inc_vat_eur_per_kwh
     )
+    heat_cost_total_ex_vat_eur <- ifelse(
+      is.na(heat_tariff_ex_vat_eur_per_kwh),
+      NA_real_,
+      heat_total_guest_attributed_kwh * heat_tariff_ex_vat_eur_per_kwh
+    )
+    heat_cost_total_inc_vat_eur <- ifelse(
+      is.na(heat_tariff_inc_vat_eur_per_kwh),
+      NA_real_,
+      heat_total_guest_attributed_kwh * heat_tariff_inc_vat_eur_per_kwh
+    )
 
     data.frame(
       season_cluster = season_name,
       season_label = pricing_row$season_label[1],
       model_days = electricity_summary$model_rows[1],
       guest_days = electricity_summary$guest_days[1],
-      total_guest_nights = electricity_summary$total_guest_nights[1],
+      total_guest_nights = total_guest_nights,
       average_guest_nights_per_guest_day = electricity_summary$average_guest_nights_per_guest_day[1],
       occupancy_model_unit = "guest_nights",
+      revenue_assumption_unit = "estimated_occupied_apartment_nights",
       assumed_revenue_basis = pricing_row$assumed_revenue_basis[1],
-      assumed_revenue_eur_per_night = assumed_revenue_eur,
+      assumed_revenue_eur_per_night = apartment_rate_eur,
+      estimated_occupied_apartment_nights = total_estimated_occupied_apartment_nights,
+      average_occupied_apartments_per_guest_day = average_occupied_apartments_per_guest_day,
+      estimated_revenue_total_eur = estimated_revenue_total_eur,
+      estimated_revenue_per_guest_day_eur = estimated_revenue_per_guest_day_eur,
+      estimated_revenue_per_guest_night_eur = estimated_revenue_per_guest_night_eur,
       electricity_model_r_squared = electricity_summary$r_squared[1],
       heat_model_r_squared = heat_summary$r_squared[1],
       electricity_additional_per_guest_night_kwh = electricity_additional_kwh,
       heat_additional_per_guest_night_kwh = heat_additional_kwh,
+      electricity_total_guest_attributed_kwh = electricity_total_guest_attributed_kwh,
+      heat_total_guest_attributed_kwh = heat_total_guest_attributed_kwh,
       electricity_tariff_ex_vat_eur_per_kwh = electricity_tariff_ex_vat_eur_per_kwh,
       electricity_tariff_inc_vat_eur_per_kwh = electricity_tariff_inc_vat_eur_per_kwh,
       electricity_cost_per_additional_guest_night_ex_vat_eur = electricity_cost_ex_vat_eur,
       electricity_cost_per_additional_guest_night_inc_vat_eur = electricity_cost_inc_vat_eur,
+      electricity_cost_total_guest_attributed_ex_vat_eur = electricity_cost_total_ex_vat_eur,
+      electricity_cost_total_guest_attributed_inc_vat_eur = electricity_cost_total_inc_vat_eur,
       heat_tariff_ex_vat_eur_per_kwh = heat_tariff_ex_vat_eur_per_kwh,
       heat_tariff_inc_vat_eur_per_kwh = heat_tariff_inc_vat_eur_per_kwh,
       heat_cost_per_additional_guest_night_ex_vat_eur = heat_cost_ex_vat_eur,
       heat_cost_per_additional_guest_night_inc_vat_eur = heat_cost_inc_vat_eur,
-      contribution_after_electricity_ex_vat_eur = assumed_revenue_eur - electricity_cost_ex_vat_eur,
-      contribution_after_electricity_inc_vat_eur = assumed_revenue_eur - electricity_cost_inc_vat_eur,
+      heat_cost_total_guest_attributed_ex_vat_eur = heat_cost_total_ex_vat_eur,
+      heat_cost_total_guest_attributed_inc_vat_eur = heat_cost_total_inc_vat_eur,
+      contribution_after_electricity_ex_vat_eur = estimated_revenue_total_eur - electricity_cost_total_ex_vat_eur,
+      contribution_after_electricity_inc_vat_eur = estimated_revenue_total_eur - electricity_cost_total_inc_vat_eur,
       contribution_after_energy_ex_vat_eur = ifelse(
-        is.na(heat_cost_ex_vat_eur),
+        is.na(heat_cost_total_ex_vat_eur),
         NA_real_,
-        assumed_revenue_eur - electricity_cost_ex_vat_eur - heat_cost_ex_vat_eur
+        estimated_revenue_total_eur - electricity_cost_total_ex_vat_eur - heat_cost_total_ex_vat_eur
       ),
       contribution_after_energy_inc_vat_eur = ifelse(
-        is.na(heat_cost_inc_vat_eur),
+        is.na(heat_cost_total_inc_vat_eur),
         NA_real_,
-        assumed_revenue_eur - electricity_cost_inc_vat_eur - heat_cost_inc_vat_eur
+        estimated_revenue_total_eur - electricity_cost_total_inc_vat_eur - heat_cost_total_inc_vat_eur
       ),
       heat_cost_formula_ex_vat = ifelse(
-        is.na(heat_additional_kwh),
+        is.na(heat_total_guest_attributed_kwh),
         NA_character_,
-        sprintf("%.2f * heat_tariff_ex_vat_eur_per_kwh", heat_additional_kwh)
+        sprintf("%.2f * heat_tariff_ex_vat_eur_per_kwh", heat_total_guest_attributed_kwh)
       ),
       heat_cost_formula_inc_vat = ifelse(
-        is.na(heat_additional_kwh),
+        is.na(heat_total_guest_attributed_kwh),
         NA_character_,
-        sprintf("%.2f * heat_tariff_inc_vat_eur_per_kwh", heat_additional_kwh)
+        sprintf("%.2f * heat_tariff_inc_vat_eur_per_kwh", heat_total_guest_attributed_kwh)
       ),
       net_contribution_formula_ex_vat = ifelse(
-        is.na(heat_additional_kwh),
+        is.na(heat_total_guest_attributed_kwh),
         NA_character_,
         sprintf(
           "%.2f - %.2f - %.2f * heat_tariff_ex_vat_eur_per_kwh",
-          assumed_revenue_eur,
-          electricity_cost_ex_vat_eur,
-          heat_additional_kwh
+          estimated_revenue_total_eur,
+          electricity_cost_total_ex_vat_eur,
+          heat_total_guest_attributed_kwh
         )
       ),
       net_contribution_formula_inc_vat = ifelse(
-        is.na(heat_additional_kwh),
+        is.na(heat_total_guest_attributed_kwh),
         NA_character_,
         sprintf(
           "%.2f - %.2f - %.2f * heat_tariff_inc_vat_eur_per_kwh",
-          assumed_revenue_eur,
-          electricity_cost_inc_vat_eur,
-          heat_additional_kwh
+          estimated_revenue_total_eur,
+          electricity_cost_total_inc_vat_eur,
+          heat_total_guest_attributed_kwh
         )
       ),
       break_even_heat_tariff_ex_vat_eur_per_kwh = safe_divide(
-        assumed_revenue_eur - electricity_cost_ex_vat_eur,
-        heat_additional_kwh
+        estimated_revenue_total_eur - electricity_cost_total_ex_vat_eur,
+        heat_total_guest_attributed_kwh
       ),
       break_even_heat_tariff_inc_vat_eur_per_kwh = safe_divide(
-        assumed_revenue_eur - electricity_cost_inc_vat_eur,
-        heat_additional_kwh
+        estimated_revenue_total_eur - electricity_cost_total_inc_vat_eur,
+        heat_total_guest_attributed_kwh
       ),
       scenario_note = paste(
-        "Scenario only:",
-        "occupancy is modeled in guest nights,",
-        "while the revenue assumption uses apartment-night pricing."
+        "Revenue estimate uses occupied apartment nights = sum(ceiling(guest_nights / 2)).",
+        "Energy costs stay model-based and therefore remain an approximation."
       ),
       stringsAsFactors = FALSE
     )
@@ -898,7 +1189,11 @@ fit_segmented_guest_impact_model <- function(
 
     segment_fit_rows <- stats::complete.cases(segment_dataset[, needed_columns, drop = FALSE])
     segment_additional_kwh <- segment_model$summary$additional_per_guest_night_kwh[1]
-    use_segment_model <- !is.na(segment_additional_kwh) && segment_additional_kwh >= 0
+    segment_negative_guest_impact_days <- segment_model$summary$negative_guest_impact_days[1]
+    use_segment_model <- !is.na(segment_additional_kwh) &&
+      segment_additional_kwh >= 0 &&
+      !is.na(segment_negative_guest_impact_days) &&
+      segment_negative_guest_impact_days == 0
 
     chosen_prediction_actual <- if (use_segment_model) {
       segment_model$prediction_actual
@@ -931,18 +1226,37 @@ fit_segmented_guest_impact_model <- function(
       segment_model$summary
     } else {
       summary_row_fallback <- segment_model$summary
-      summary_row_fallback$r_squared <- fallback_model$summary$r_squared[1]
-      summary_row_fallback$nights_coefficient_kwh <- fallback_model$summary$nights_coefficient_kwh[1]
-      summary_row_fallback$hdd18_coefficient_kwh <- fallback_model$summary$hdd18_coefficient_kwh[1]
+      passthrough_columns <- c(
+        "baseline_definition",
+        "r_squared",
+        "adjusted_r_squared",
+        "nights_coefficient_kwh",
+        "log1p_nights_coefficient_kwh",
+        "nights_sq_coefficient_kwh",
+        "has_guests_flag_coefficient_kwh",
+        "occupied_apartments_estimated_coefficient_kwh",
+        "arrivals_coefficient_kwh",
+        "hdd18_coefficient_kwh",
+        "hdd18_sq_coefficient_kwh",
+        "temp_mean_c_coefficient_kwh",
+        "sunshine_hours_coefficient_kwh",
+        "is_weekend_flag_coefficient_kwh",
+        "negative_guest_impact_days"
+      )
+      for (column_name in passthrough_columns) {
+        if (column_name %in% names(summary_row_fallback) && column_name %in% names(fallback_model$summary)) {
+          summary_row_fallback[[column_name]] <- fallback_model$summary[[column_name]][1]
+        }
+      }
       summary_row_fallback$baseline_no_guest_avg_on_guest_days_kwh <- safe_mean(
-        chosen_prediction_no_guests[!is.na(segment_dataset$nights) & segment_dataset$nights > 0]
+        chosen_prediction_no_guests[segment_dataset$has_guests_flag == 1]
       )
       summary_row_fallback$additional_per_guest_night_kwh <- fallback_model$summary$additional_per_guest_night_kwh[1]
       summary_row_fallback$additional_per_guest_night_pct_vs_baseline <- safe_divide(
         summary_row_fallback$additional_per_guest_night_kwh,
         summary_row_fallback$baseline_no_guest_avg_on_guest_days_kwh
       )
-      summary_row_fallback$total_guest_attributed_kwh <- safe_sum(chosen_guest_impact[segment_fit_rows])
+      summary_row_fallback$total_guest_attributed_kwh <- safe_sum(chosen_guest_impact[segment_dataset$has_guests_flag == 1])
       summary_row_fallback$total_guest_attributed_share <- safe_divide(
         summary_row_fallback$total_guest_attributed_kwh,
         safe_sum(segment_dataset[[target]][segment_fit_rows])
@@ -955,6 +1269,12 @@ fit_segmented_guest_impact_model <- function(
     summary_row$guest_days <- safe_sum(segment_dataset$has_guests_flag)
     summary_row$average_guest_nights_per_guest_day <- safe_mean(
       segment_dataset$nights[segment_dataset$has_guests_flag == 1]
+    )
+    summary_row$total_estimated_occupied_apartment_nights <- safe_sum(
+      segment_dataset$occupied_apartments_estimated[segment_fit_rows]
+    )
+    summary_row$average_occupied_apartments_estimated_per_guest_day <- safe_mean(
+      segment_dataset$occupied_apartments_estimated[segment_dataset$has_guests_flag == 1]
     )
     summary_row$segment_source <- if (use_segment_model) {
       "segment"
@@ -994,7 +1314,6 @@ align_segmented_summary_to_applied_series <- function(
 ) {
   summary_rows <- segmented_summary$metric_key == metric_key
   season_rows <- which(summary_rows)
-  needed_columns <- unique(c(target_col, "hdd18", "nights"))
 
   for (row_idx in season_rows) {
     segment_name <- segmented_summary$segment_key[row_idx]
@@ -1002,11 +1321,36 @@ align_segmented_summary_to_applied_series <- function(
     applied_values <- unique(daily_dataset[[segment_assignment_col]][segment_mask & !is.na(daily_dataset[[segment_assignment_col]])])
 
     if (length(applied_values) == 1 && applied_values == "all_days_fallback") {
-      fit_rows <- segment_mask & stats::complete.cases(daily_dataset[, needed_columns, drop = FALSE])
+      fit_rows <- segment_mask &
+        !is.na(daily_dataset[[target_col]]) &
+        !is.na(daily_dataset[[baseline_col]]) &
+        !is.na(daily_dataset[[impact_col]])
       guest_rows <- fit_rows & daily_dataset$has_guests_flag == 1
-      segmented_summary$r_squared[row_idx] <- annual_summary$r_squared[1]
-      segmented_summary$nights_coefficient_kwh[row_idx] <- annual_summary$nights_coefficient_kwh[1]
-      segmented_summary$hdd18_coefficient_kwh[row_idx] <- annual_summary$hdd18_coefficient_kwh[1]
+      passthrough_columns <- intersect(
+        names(segmented_summary),
+        c(
+          "baseline_definition",
+          "r_squared",
+          "adjusted_r_squared",
+          "nights_coefficient_kwh",
+          "log1p_nights_coefficient_kwh",
+          "nights_sq_coefficient_kwh",
+          "has_guests_flag_coefficient_kwh",
+          "occupied_apartments_estimated_coefficient_kwh",
+          "arrivals_coefficient_kwh",
+          "hdd18_coefficient_kwh",
+          "hdd18_sq_coefficient_kwh",
+          "temp_mean_c_coefficient_kwh",
+          "sunshine_hours_coefficient_kwh",
+          "is_weekend_flag_coefficient_kwh",
+          "negative_guest_impact_days"
+        )
+      )
+      for (column_name in passthrough_columns) {
+        if (column_name %in% names(annual_summary)) {
+          segmented_summary[[column_name]][row_idx] <- annual_summary[[column_name]][1]
+        }
+      }
       segmented_summary$baseline_no_guest_avg_on_guest_days_kwh[row_idx] <- safe_mean(
         daily_dataset[[baseline_col]][guest_rows]
       )
@@ -1039,6 +1383,7 @@ meldewesen <- load_meldewesen(file.path(data_dir, "meldewesen"))
 fronius <- load_fronius(file.path(data_dir, "fronius"))
 fernwaerme <- load_fernwaerme(file.path(data_dir, "fernwaerme"))
 strom <- load_strom(file.path(data_dir, "strom"))
+feed_in <- load_feed_in(file.path(data_dir, "strom-einspeisung"))
 wetter <- load_wetter(file.path(data_dir, "wetter"))
 
 date_spine <- data.frame(
@@ -1048,13 +1393,23 @@ date_spine <- data.frame(
 
 raw_daily <- Reduce(
   function(x, y) merge(x, y, by = "date", all.x = TRUE),
-  list(date_spine, strom$daily, fernwaerme$daily, fronius, meldewesen, wetter$daily)
+  list(date_spine, strom$daily, feed_in$daily, fernwaerme$daily, fronius, meldewesen, wetter$daily)
 )
 
 raw_daily <- raw_daily[order(raw_daily$date), ]
 raw_daily$timestamp_ms <- as.numeric(as.POSIXct(raw_daily$date, tz = "Europe/Vienna")) * 1000
 raw_daily$has_guests_flag <- ifelse(!is.na(raw_daily$nights) & raw_daily$nights > 0, 1L, 0L)
+  raw_daily$occupied_apartments_estimated <- ifelse(
+    is.na(raw_daily$nights),
+    NA_real_,
+    ifelse(
+      raw_daily$nights > 0,
+      pmax(3, ceiling(raw_daily$nights / 2)),
+      0
+    )
+  )
 raw_daily$electricity_data_available <- ifelse(is.na(raw_daily$electricity_kwh), 0L, 1L)
+raw_daily$feed_in_data_available <- ifelse(is.na(raw_daily$electricity_feed_in_kwh), 0L, 1L)
 raw_daily$heat_data_available <- ifelse(is.na(raw_daily$heat_kwh), 0L, 1L)
 raw_daily$pv_data_available <- ifelse(is.na(raw_daily$pv_kwh), 0L, 1L)
 raw_daily$occupancy_data_available <- ifelse(is.na(raw_daily$nights), 0L, 1L)
@@ -1063,6 +1418,23 @@ raw_daily$meteorological_season <- meteorological_season_from_date(raw_daily$dat
 
 analysis_daily <- raw_daily
 analysis_daily$nights_prev_day <- lag_vec(analysis_daily$nights)
+analysis_daily$log1p_nights <- ifelse(
+  is.na(analysis_daily$nights),
+  NA_real_,
+  log1p(pmax(analysis_daily$nights, 0))
+)
+analysis_daily$nights_sq <- ifelse(
+  is.na(analysis_daily$nights),
+  NA_real_,
+  analysis_daily$nights^2
+)
+analysis_daily$weekday_iso <- as.integer(format(analysis_daily$date, "%u"))
+analysis_daily$weekday_label <- weekday_label_from_iso(analysis_daily$weekday_iso)
+analysis_daily$is_weekend_flag <- ifelse(
+  is.na(analysis_daily$weekday_iso),
+  NA_integer_,
+  ifelse(analysis_daily$weekday_iso %in% c(6L, 7L), 1L, 0L)
+)
 analysis_daily$occupancy_delta_nights <- ifelse(
   is.na(analysis_daily$nights) | is.na(analysis_daily$nights_prev_day),
   NA_real_,
@@ -1074,6 +1446,11 @@ analysis_daily$electricity_kwh_delta_prev_day <- ifelse(
   is.na(analysis_daily$electricity_kwh),
   NA_real_,
   analysis_daily$electricity_kwh - lag_vec(analysis_daily$electricity_kwh)
+)
+analysis_daily$electricity_feed_in_kwh_delta_prev_day <- ifelse(
+  is.na(analysis_daily$electricity_feed_in_kwh),
+  NA_real_,
+  analysis_daily$electricity_feed_in_kwh - lag_vec(analysis_daily$electricity_feed_in_kwh)
 )
 analysis_daily$heat_kwh_delta_prev_day <- ifelse(
   is.na(analysis_daily$heat_kwh),
@@ -1090,6 +1467,46 @@ analysis_daily$hdd18_delta_prev_day <- ifelse(
   NA_real_,
   analysis_daily$hdd18 - lag_vec(analysis_daily$hdd18)
 )
+analysis_daily$electricity_self_consumption_raw_kwh <- ifelse(
+  is.na(analysis_daily$pv_kwh) | is.na(analysis_daily$electricity_feed_in_kwh),
+  NA_real_,
+  analysis_daily$pv_kwh - analysis_daily$electricity_feed_in_kwh
+)
+analysis_daily$feed_in_exceeds_pv_flag <- ifelse(
+  !is.na(analysis_daily$electricity_feed_in_kwh) &
+    !is.na(analysis_daily$pv_kwh) &
+    analysis_daily$electricity_feed_in_kwh > analysis_daily$pv_kwh + 1e-8,
+  1L,
+  0L
+)
+analysis_daily$electricity_self_consumption_kwh <- clamp_between(
+  analysis_daily$electricity_self_consumption_raw_kwh,
+  0,
+  analysis_daily$pv_kwh
+)
+analysis_daily$real_electricity_kwh <- ifelse(
+  is.na(analysis_daily$electricity_kwh) | is.na(analysis_daily$electricity_self_consumption_kwh),
+  NA_real_,
+  analysis_daily$electricity_kwh + analysis_daily$electricity_self_consumption_kwh
+)
+analysis_daily$real_electricity_data_available <- ifelse(is.na(analysis_daily$real_electricity_kwh), 0L, 1L)
+analysis_daily$real_electricity_kwh_delta_prev_day <- ifelse(
+  is.na(analysis_daily$real_electricity_kwh),
+  NA_real_,
+  analysis_daily$real_electricity_kwh - lag_vec(analysis_daily$real_electricity_kwh)
+)
+analysis_daily$electricity_autarky_ratio <- safe_divide(
+  analysis_daily$electricity_self_consumption_kwh,
+  analysis_daily$real_electricity_kwh
+)
+analysis_daily$pv_self_consumption_ratio <- safe_divide(
+  analysis_daily$electricity_self_consumption_kwh,
+  analysis_daily$pv_kwh
+)
+analysis_daily$pv_feed_in_ratio <- safe_divide(
+  analysis_daily$electricity_feed_in_kwh,
+  analysis_daily$pv_kwh
+)
 
 heat_weather_model <- fit_heat_weather_model(analysis_daily)
 analysis_daily$heat_weather_baseline_kwh <- heat_weather_model$prediction
@@ -1104,65 +1521,189 @@ analysis_daily$heat_weather_residual_delta_prev_day_kwh <- ifelse(
   analysis_daily$heat_weather_residual_kwh - lag_vec(analysis_daily$heat_weather_residual_kwh)
 )
 
-electricity_guest_impact_model <- fit_guest_impact_model(
+real_electricity_formula_annual <- real_electricity_kwh ~
+  has_guests_flag +
+  log1p_nights +
+  occupied_apartments_estimated +
+  arrivals +
+  temp_mean_c +
+  sunshine_hours +
+  is_weekend_flag +
+  factor(season_cluster)
+real_electricity_formula_segmented <- real_electricity_kwh ~
+  has_guests_flag +
+  log1p_nights +
+  occupied_apartments_estimated +
+  arrivals +
+  temp_mean_c +
+  sunshine_hours +
+  is_weekend_flag
+heat_formula_annual <- heat_kwh ~
+  hdd18 +
+  I(hdd18^2) +
+  has_guests_flag +
+  log1p_nights +
+  occupied_apartments_estimated +
+  arrivals +
+  is_weekend_flag +
+  factor(season_cluster)
+heat_formula_segmented <- heat_kwh ~
+  hdd18 +
+  I(hdd18^2) +
+  has_guests_flag +
+  log1p_nights +
+  occupied_apartments_estimated +
+  arrivals +
+  is_weekend_flag
+
+real_electricity_model_comparison <- build_model_comparison_dataset(
   analysis_daily,
-  "electricity_kwh",
-  electricity_kwh ~ hdd18 + nights,
-  "electricity",
-  "Strom",
-  "HDD18-kontrolliert"
+  "real_electricity_kwh",
+  "real_electricity",
+  "Realer Stromverbrauch",
+  list(
+    list(
+      model_id = "model1_hdd18",
+      model_label = "Modell 1: Verbrauch ~ hdd18",
+      formula = real_electricity_kwh ~ hdd18
+    ),
+    list(
+      model_id = "model2_hdd18_has_guests_flag",
+      model_label = "Modell 2: Verbrauch ~ hdd18 + has_guests_flag",
+      formula = real_electricity_kwh ~ hdd18 + has_guests_flag
+    ),
+    list(
+      model_id = "model3_hdd18_has_guests_flag_nights",
+      model_label = "Modell 3: Verbrauch ~ hdd18 + has_guests_flag + nights",
+      formula = real_electricity_kwh ~ hdd18 + has_guests_flag + nights
+    ),
+    list(
+      model_id = "model4_extended_operational",
+      model_label = "Modell 4: erweitert mit Wetter, Betrieb und Saison",
+      formula = real_electricity_formula_annual
+    ),
+    list(
+      model_id = "model5_extended_nonlinear",
+      model_label = "Modell 5: erweitert mit nights^2 und weekday",
+      formula = real_electricity_kwh ~
+        has_guests_flag +
+        log1p_nights +
+        nights_sq +
+        occupied_apartments_estimated +
+        arrivals +
+        temp_mean_c +
+        sunshine_hours +
+        factor(weekday_iso) +
+        factor(season_cluster)
+    )
+  )
+)
+heat_model_comparison <- build_model_comparison_dataset(
+  analysis_daily,
+  "heat_kwh",
+  "heat",
+  "Fernwaerme",
+  list(
+    list(
+      model_id = "model1_hdd18",
+      model_label = "Modell 1: Verbrauch ~ hdd18",
+      formula = heat_kwh ~ hdd18
+    ),
+    list(
+      model_id = "model2_hdd18_has_guests_flag",
+      model_label = "Modell 2: Verbrauch ~ hdd18 + has_guests_flag",
+      formula = heat_kwh ~ hdd18 + has_guests_flag
+    ),
+    list(
+      model_id = "model3_hdd18_has_guests_flag_nights",
+      model_label = "Modell 3: Verbrauch ~ hdd18 + has_guests_flag + nights",
+      formula = heat_kwh ~ hdd18 + has_guests_flag + nights
+    ),
+    list(
+      model_id = "model4_extended_operational",
+      model_label = "Modell 4: erweitert mit HDD18^2, Betrieb und Saison",
+      formula = heat_formula_annual
+    ),
+    list(
+      model_id = "model5_extended_nonlinear",
+      model_label = "Modell 5: erweitert mit nights^2 und weekday",
+      formula = heat_kwh ~
+        hdd18 +
+        I(hdd18^2) +
+        has_guests_flag +
+        log1p_nights +
+        nights_sq +
+        occupied_apartments_estimated +
+        arrivals +
+        factor(weekday_iso) +
+        factor(season_cluster)
+    )
+  )
+)
+analysis_model_comparison <- rbind(
+  real_electricity_model_comparison,
+  heat_model_comparison
+)
+
+real_electricity_guest_impact_model <- fit_guest_impact_model(
+  analysis_daily,
+  "real_electricity_kwh",
+  real_electricity_formula_annual,
+  "real_electricity",
+  "Realer Stromverbrauch",
+  "Betriebs- und wetterkontrolliert"
 )
 heat_guest_impact_model <- fit_guest_impact_model(
   analysis_daily,
   "heat_kwh",
-  heat_kwh ~ hdd18 + nights,
+  heat_formula_annual,
   "heat",
   "Fernwaerme",
-  "HDD18-kontrolliert"
+  "HDD18-, Betriebs- und saisonkontrolliert"
 )
 season_levels <- c("winter", "transition", "summer")
-electricity_guest_impact_model_seasonal <- fit_segmented_guest_impact_model(
+real_electricity_guest_impact_model_seasonal <- fit_segmented_guest_impact_model(
   analysis_daily,
-  "electricity_kwh",
-  electricity_kwh ~ hdd18 + nights,
-  "electricity",
-  "Strom",
-  "HDD18-kontrolliert",
+  "real_electricity_kwh",
+  real_electricity_formula_segmented,
+  "real_electricity",
+  "Realer Stromverbrauch",
+  "Betriebs- und wetterkontrolliert",
   segment_col = "season_cluster",
   segment_levels = season_levels
 )
 heat_guest_impact_model_seasonal <- fit_segmented_guest_impact_model(
   analysis_daily,
   "heat_kwh",
-  heat_kwh ~ hdd18 + nights,
+  heat_formula_segmented,
   "heat",
   "Fernwaerme",
-  "HDD18-kontrolliert",
+  "HDD18- und betriebs-kontrolliert",
   segment_col = "season_cluster",
   segment_levels = season_levels
 )
 analysis_guest_impact <- rbind(
-  electricity_guest_impact_model$summary,
+  real_electricity_guest_impact_model$summary,
   heat_guest_impact_model$summary
 )
 analysis_guest_impact_seasonal <- rbind(
-  electricity_guest_impact_model_seasonal$summary_segmented,
+  real_electricity_guest_impact_model_seasonal$summary_segmented,
   heat_guest_impact_model_seasonal$summary_segmented
 )
 
-analysis_daily$electricity_modeled_kwh <- electricity_guest_impact_model$prediction_actual
-analysis_daily$electricity_no_guest_baseline_kwh <- electricity_guest_impact_model$prediction_no_guests
-analysis_daily$electricity_guest_impact_kwh <- electricity_guest_impact_model$guest_impact
-analysis_daily$electricity_modeled_total_seasonal_kwh <- electricity_guest_impact_model_seasonal$prediction_actual
-analysis_daily$electricity_modeled_seasonal_kwh <- analysis_daily$electricity_modeled_total_seasonal_kwh
-analysis_daily$electricity_no_guest_baseline_seasonal_kwh <- electricity_guest_impact_model_seasonal$prediction_no_guests
-analysis_daily$electricity_guest_impact_seasonal_kwh <- electricity_guest_impact_model_seasonal$guest_impact
-analysis_daily$electricity_model_residual_seasonal_kwh <- ifelse(
-  is.na(analysis_daily$electricity_kwh) | is.na(analysis_daily$electricity_modeled_total_seasonal_kwh),
+analysis_daily$real_electricity_modeled_kwh <- real_electricity_guest_impact_model$prediction_actual
+analysis_daily$real_electricity_no_guest_baseline_kwh <- real_electricity_guest_impact_model$prediction_no_guests
+analysis_daily$real_electricity_guest_impact_kwh <- real_electricity_guest_impact_model$guest_impact
+analysis_daily$real_electricity_modeled_total_seasonal_kwh <- real_electricity_guest_impact_model_seasonal$prediction_actual
+analysis_daily$real_electricity_modeled_seasonal_kwh <- analysis_daily$real_electricity_modeled_total_seasonal_kwh
+analysis_daily$real_electricity_no_guest_baseline_seasonal_kwh <- real_electricity_guest_impact_model_seasonal$prediction_no_guests
+analysis_daily$real_electricity_guest_impact_seasonal_kwh <- real_electricity_guest_impact_model_seasonal$guest_impact
+analysis_daily$real_electricity_model_residual_seasonal_kwh <- ifelse(
+  is.na(analysis_daily$real_electricity_kwh) | is.na(analysis_daily$real_electricity_modeled_total_seasonal_kwh),
   NA_real_,
-  analysis_daily$electricity_kwh - analysis_daily$electricity_modeled_total_seasonal_kwh
+  analysis_daily$real_electricity_kwh - analysis_daily$real_electricity_modeled_total_seasonal_kwh
 )
-analysis_daily$electricity_guest_impact_segment <- electricity_guest_impact_model_seasonal$applied_segment
+analysis_daily$real_electricity_guest_impact_segment <- real_electricity_guest_impact_model_seasonal$applied_segment
 analysis_daily$heat_modeled_kwh <- heat_guest_impact_model$prediction_actual
 analysis_daily$heat_no_guest_baseline_kwh <- heat_guest_impact_model$prediction_no_guests
 analysis_daily$heat_guest_impact_kwh <- heat_guest_impact_model$guest_impact
@@ -1177,38 +1718,19 @@ analysis_daily$heat_model_residual_seasonal_kwh <- ifelse(
 )
 analysis_daily$heat_guest_impact_segment <- heat_guest_impact_model_seasonal$applied_segment
 
-analysis_daily$electricity_minus_pv_kwh <- ifelse(
-  is.na(analysis_daily$electricity_kwh) | is.na(analysis_daily$pv_kwh),
-  NA_real_,
-  analysis_daily$electricity_kwh - analysis_daily$pv_kwh
-)
-analysis_daily$grid_need_after_pv_kwh <- ifelse(
-  is.na(analysis_daily$electricity_minus_pv_kwh),
-  NA_real_,
-  pmax(analysis_daily$electricity_minus_pv_kwh, 0)
-)
-analysis_daily$pv_surplus_vs_load_kwh <- ifelse(
-  is.na(analysis_daily$electricity_minus_pv_kwh),
-  NA_real_,
-  pmax(-analysis_daily$electricity_minus_pv_kwh, 0)
-)
 analysis_daily$potential_pv_to_heat_kwh <- ifelse(
-  is.na(analysis_daily$pv_surplus_vs_load_kwh) | is.na(analysis_daily$heat_kwh),
+  is.na(analysis_daily$electricity_feed_in_kwh) | is.na(analysis_daily$heat_kwh),
   NA_real_,
-  pmin(analysis_daily$pv_surplus_vs_load_kwh, analysis_daily$heat_kwh)
+  pmin(analysis_daily$electricity_feed_in_kwh, analysis_daily$heat_kwh)
 )
 analysis_daily$remaining_heat_after_pv_surplus_kwh <- ifelse(
-  is.na(analysis_daily$pv_surplus_vs_load_kwh) | is.na(analysis_daily$heat_kwh),
+  is.na(analysis_daily$electricity_feed_in_kwh) | is.na(analysis_daily$heat_kwh),
   NA_real_,
-  pmax(analysis_daily$heat_kwh - analysis_daily$pv_surplus_vs_load_kwh, 0)
+  pmax(analysis_daily$heat_kwh - analysis_daily$electricity_feed_in_kwh, 0)
 )
 analysis_daily$pv_generation_to_load_ratio <- safe_divide(
   analysis_daily$pv_kwh,
-  analysis_daily$electricity_kwh
-)
-analysis_daily$potential_pv_coverage_ratio <- safe_divide(
-  pmin(analysis_daily$pv_kwh, analysis_daily$electricity_kwh),
-  analysis_daily$electricity_kwh
+  analysis_daily$real_electricity_kwh
 )
 analysis_daily$potential_pv_to_heat_ratio <- safe_divide(
   analysis_daily$potential_pv_to_heat_kwh,
@@ -1216,6 +1738,10 @@ analysis_daily$potential_pv_to_heat_ratio <- safe_divide(
 )
 analysis_daily$electricity_kwh_per_night <- safe_divide(
   analysis_daily$electricity_kwh,
+  analysis_daily$nights
+)
+analysis_daily$real_electricity_kwh_per_night <- safe_divide(
+  analysis_daily$real_electricity_kwh,
   analysis_daily$nights
 )
 analysis_daily$heat_kwh_per_night <- safe_divide(
@@ -1228,7 +1754,7 @@ analysis_daily$pv_kwh_per_night <- safe_divide(
 )
 analysis_daily$heat_to_electricity_ratio <- safe_divide(
   analysis_daily$heat_kwh,
-  analysis_daily$electricity_kwh
+  analysis_daily$real_electricity_kwh
 )
 analysis_daily$heat_kwh_per_hdd18 <- safe_divide(
   analysis_daily$heat_kwh,
@@ -1242,23 +1768,24 @@ analysis_daily$heat_weather_adjusted_per_night_kwh <- safe_divide(
   analysis_daily$heat_weather_residual_kwh,
   analysis_daily$nights
 )
-analysis_daily$electricity_guest_impact_share <- safe_divide(
-  analysis_daily$electricity_guest_impact_kwh,
-  analysis_daily$electricity_kwh
+analysis_daily$real_electricity_guest_impact_share <- safe_divide(
+  analysis_daily$real_electricity_guest_impact_kwh,
+  analysis_daily$real_electricity_kwh
 )
 analysis_daily$heat_guest_impact_share <- safe_divide(
   analysis_daily$heat_guest_impact_kwh,
   analysis_daily$heat_kwh
 )
-analysis_daily$electricity_guest_impact_seasonal_share <- safe_divide(
-  analysis_daily$electricity_guest_impact_seasonal_kwh,
-  analysis_daily$electricity_kwh
+analysis_daily$real_electricity_guest_impact_seasonal_share <- safe_divide(
+  analysis_daily$real_electricity_guest_impact_seasonal_kwh,
+  analysis_daily$real_electricity_kwh
 )
 analysis_daily$heat_guest_impact_seasonal_share <- safe_divide(
   analysis_daily$heat_guest_impact_seasonal_kwh,
   analysis_daily$heat_kwh
 )
 analysis_daily$electricity_7d_avg_kwh <- rolling_mean(analysis_daily$electricity_kwh, 7L)
+analysis_daily$real_electricity_7d_avg_kwh <- rolling_mean(analysis_daily$real_electricity_kwh, 7L)
 analysis_daily$heat_7d_avg_kwh <- rolling_mean(analysis_daily$heat_kwh, 7L)
 analysis_daily$pv_7d_avg_kwh <- rolling_mean(analysis_daily$pv_kwh, 7L)
 analysis_daily$nights_7d_avg <- rolling_mean(analysis_daily$nights, 7L)
@@ -1268,12 +1795,12 @@ analysis_daily$heat_weather_adjusted_per_night_7d_avg_kwh <- rolling_mean(
   analysis_daily$heat_weather_adjusted_per_night_kwh,
   7L
 )
-analysis_daily$electricity_no_guest_baseline_seasonal_7d_avg_kwh <- rolling_mean(
-  analysis_daily$electricity_no_guest_baseline_seasonal_kwh,
+analysis_daily$real_electricity_no_guest_baseline_seasonal_7d_avg_kwh <- rolling_mean(
+  analysis_daily$real_electricity_no_guest_baseline_seasonal_kwh,
   7L
 )
-analysis_daily$electricity_guest_impact_seasonal_7d_avg_kwh <- rolling_mean(
-  analysis_daily$electricity_guest_impact_seasonal_kwh,
+analysis_daily$real_electricity_guest_impact_seasonal_7d_avg_kwh <- rolling_mean(
+  analysis_daily$real_electricity_guest_impact_seasonal_kwh,
   7L
 )
 analysis_daily$heat_no_guest_baseline_seasonal_7d_avg_kwh <- rolling_mean(
@@ -1284,17 +1811,38 @@ analysis_daily$heat_guest_impact_seasonal_7d_avg_kwh <- rolling_mean(
   analysis_daily$heat_guest_impact_seasonal_kwh,
   7L
 )
-electricity_guest_summary_annual <- analysis_guest_impact[analysis_guest_impact$metric_key == "electricity", , drop = FALSE]
+invalid_self_consumption_bounds <- !is.na(analysis_daily$electricity_self_consumption_kwh) &
+  (
+    analysis_daily$electricity_self_consumption_kwh < -1e-8 |
+      (
+        !is.na(analysis_daily$pv_kwh) &
+          analysis_daily$electricity_self_consumption_kwh > analysis_daily$pv_kwh + 1e-8
+      )
+  )
+if (any(invalid_self_consumption_bounds)) {
+  stop("Self-consumption invariant failed: electricity_self_consumption_kwh must stay within [0, pv_kwh]")
+}
+invalid_real_electricity_balance <- !is.na(analysis_daily$real_electricity_kwh) &
+  !is.na(analysis_daily$electricity_kwh) &
+  !is.na(analysis_daily$electricity_self_consumption_kwh) &
+  abs(
+    analysis_daily$real_electricity_kwh -
+      (analysis_daily$electricity_kwh + analysis_daily$electricity_self_consumption_kwh)
+  ) > 1e-8
+if (any(invalid_real_electricity_balance)) {
+  stop("Real electricity invariant failed: real_electricity_kwh must equal grid electricity plus self-consumption")
+}
+real_electricity_guest_summary_annual <- analysis_guest_impact[analysis_guest_impact$metric_key == "real_electricity", , drop = FALSE]
 heat_guest_summary_annual <- analysis_guest_impact[analysis_guest_impact$metric_key == "heat", , drop = FALSE]
 analysis_guest_impact_seasonal <- align_segmented_summary_to_applied_series(
   analysis_guest_impact_seasonal,
   analysis_daily,
-  electricity_guest_summary_annual,
-  "electricity",
-  "electricity_kwh",
-  "electricity_no_guest_baseline_seasonal_kwh",
-  "electricity_guest_impact_seasonal_kwh",
-  "electricity_guest_impact_segment"
+  real_electricity_guest_summary_annual,
+  "real_electricity",
+  "real_electricity_kwh",
+  "real_electricity_no_guest_baseline_seasonal_kwh",
+  "real_electricity_guest_impact_seasonal_kwh",
+  "real_electricity_guest_impact_segment"
 )
 analysis_guest_impact_seasonal <- align_segmented_summary_to_applied_series(
   analysis_guest_impact_seasonal,
@@ -1307,26 +1855,26 @@ analysis_guest_impact_seasonal <- align_segmented_summary_to_applied_series(
   "heat_guest_impact_segment"
 )
 
-daily_electricity_model_gap <- analysis_daily$electricity_modeled_total_seasonal_kwh -
-  (analysis_daily$electricity_no_guest_baseline_seasonal_kwh + analysis_daily$electricity_guest_impact_seasonal_kwh)
+daily_real_electricity_model_gap <- analysis_daily$real_electricity_modeled_total_seasonal_kwh -
+  (analysis_daily$real_electricity_no_guest_baseline_seasonal_kwh + analysis_daily$real_electricity_guest_impact_seasonal_kwh)
 daily_heat_model_gap <- analysis_daily$heat_modeled_total_seasonal_kwh -
   (analysis_daily$heat_no_guest_baseline_seasonal_kwh + analysis_daily$heat_guest_impact_seasonal_kwh)
-if (any(!is.na(daily_electricity_model_gap) & abs(daily_electricity_model_gap) > 1e-8)) {
-  stop("Electricity seasonal model invariant failed: modeled total != baseline + guest impact")
+if (any(!is.na(daily_real_electricity_model_gap) & abs(daily_real_electricity_model_gap) > 1e-8)) {
+  stop("Real electricity seasonal model invariant failed: modeled total != baseline + guest impact")
 }
 if (any(!is.na(daily_heat_model_gap) & abs(daily_heat_model_gap) > 1e-8)) {
   stop("Heat seasonal model invariant failed: modeled total != baseline + guest impact")
 }
-invalid_electricity_guest_rows <- !is.na(analysis_daily$electricity_guest_impact_segment) &
-  analysis_daily$electricity_guest_impact_segment != "all_days_fallback" &
-  !is.na(analysis_daily$electricity_guest_impact_seasonal_kwh) &
-  analysis_daily$electricity_guest_impact_seasonal_kwh < -1e-8
+invalid_real_electricity_guest_rows <- !is.na(analysis_daily$real_electricity_guest_impact_segment) &
+  analysis_daily$real_electricity_guest_impact_segment != "all_days_fallback" &
+  !is.na(analysis_daily$real_electricity_guest_impact_seasonal_kwh) &
+  analysis_daily$real_electricity_guest_impact_seasonal_kwh < -1e-8
 invalid_heat_guest_rows <- !is.na(analysis_daily$heat_guest_impact_segment) &
   analysis_daily$heat_guest_impact_segment != "all_days_fallback" &
   !is.na(analysis_daily$heat_guest_impact_seasonal_kwh) &
   analysis_daily$heat_guest_impact_seasonal_kwh < -1e-8
-if (any(invalid_electricity_guest_rows)) {
-  stop("Electricity seasonal guest impact must not be negative for applied seasonal segments")
+if (any(invalid_real_electricity_guest_rows)) {
+  stop("Real electricity seasonal guest impact must not be negative for applied seasonal segments")
 }
 if (any(invalid_heat_guest_rows)) {
   stop("Heat seasonal guest impact must not be negative for applied seasonal segments")
@@ -1334,12 +1882,12 @@ if (any(invalid_heat_guest_rows)) {
 
 analysis_monthly <- build_monthly_dataset(analysis_daily, fernwaerme$monthly)
 raw_monthly <- analysis_monthly
-monthly_electricity_model_gap <- analysis_monthly$electricity_modeled_total_seasonal_kwh -
-  (analysis_monthly$electricity_no_guest_baseline_seasonal_kwh + analysis_monthly$electricity_guest_impact_seasonal_kwh)
+monthly_real_electricity_model_gap <- analysis_monthly$real_electricity_modeled_total_seasonal_kwh -
+  (analysis_monthly$real_electricity_no_guest_baseline_seasonal_kwh + analysis_monthly$real_electricity_guest_impact_seasonal_kwh)
 monthly_heat_model_gap <- analysis_monthly$heat_modeled_total_seasonal_kwh -
   (analysis_monthly$heat_no_guest_baseline_seasonal_kwh + analysis_monthly$heat_guest_impact_seasonal_kwh)
-if (any(!is.na(monthly_electricity_model_gap) & abs(monthly_electricity_model_gap) > 1e-8)) {
-  stop("Electricity monthly seasonal model invariant failed: modeled total != baseline + guest impact")
+if (any(!is.na(monthly_real_electricity_model_gap) & abs(monthly_real_electricity_model_gap) > 1e-8)) {
+  stop("Real electricity monthly seasonal model invariant failed: modeled total != baseline + guest impact")
 }
 if (any(!is.na(monthly_heat_model_gap) & abs(monthly_heat_model_gap) > 1e-8)) {
   stop("Heat monthly seasonal model invariant failed: modeled total != baseline + guest impact")
@@ -1349,34 +1897,70 @@ analysis_event_summary <- build_event_summary(analysis_daily)
 seasonal_pricing <- data.frame(
   season_cluster = c("summer", "winter"),
   season_label = c("Sommer", "Winter"),
-  assumed_revenue_basis = c(
-    "Appartement/Nacht als Szenario fuer eine zusaetzliche Naechtigung",
-    "Appartement/Nacht als Szenario fuer eine zusaetzliche Naechtigung"
-  ),
+    assumed_revenue_basis = c(
+      "Geschaetzte Appartement-Naechte = Summe max(3, ceil(Naechtigungen / 2))",
+      "Geschaetzte Appartement-Naechte = Summe max(3, ceil(Naechtigungen / 2))"
+    ),
   assumed_revenue_eur_per_night = c(75, 85),
   stringsAsFactors = FALSE
 )
 analysis_guest_value <- build_guest_value_dataset(
   analysis_guest_impact_seasonal,
+  analysis_daily,
   seasonal_pricing,
   electricity_tariff_ex_vat_eur_per_kwh = 0.125,
   electricity_tariff_inc_vat_eur_per_kwh = 0.15
 )
-electricity_guest_summary <- analysis_guest_impact[analysis_guest_impact$metric_key == "electricity", , drop = FALSE]
+real_electricity_guest_summary <- analysis_guest_impact[analysis_guest_impact$metric_key == "real_electricity", , drop = FALSE]
 heat_guest_summary <- analysis_guest_impact[analysis_guest_impact$metric_key == "heat", , drop = FALSE]
+required_model_ids <- c(
+  "model1_hdd18",
+  "model2_hdd18_has_guests_flag",
+  "model3_hdd18_has_guests_flag_nights"
+)
+real_electricity_model_comparison_required <- analysis_model_comparison[
+  analysis_model_comparison$metric_key == "real_electricity" &
+    analysis_model_comparison$model_id %in% required_model_ids,
+  ,
+  drop = FALSE
+]
+heat_model_comparison_required <- analysis_model_comparison[
+  analysis_model_comparison$metric_key == "heat" &
+    analysis_model_comparison$model_id %in% required_model_ids,
+  ,
+  drop = FALSE
+]
+real_electricity_fallback_segments <- unique(as.character(
+  analysis_guest_impact_seasonal$segment_key[
+    analysis_guest_impact_seasonal$metric_key == "real_electricity" &
+      analysis_guest_impact_seasonal$segment_source != "segment"
+  ]
+))
+heat_fallback_segments <- unique(as.character(
+  analysis_guest_impact_seasonal$segment_key[
+    analysis_guest_impact_seasonal$metric_key == "heat" &
+      analysis_guest_impact_seasonal$segment_source != "segment"
+  ]
+))
+real_electricity_fallback_segments <- real_electricity_fallback_segments[!is.na(real_electricity_fallback_segments) & nzchar(real_electricity_fallback_segments)]
+heat_fallback_segments <- heat_fallback_segments[!is.na(heat_fallback_segments) & nzchar(heat_fallback_segments)]
 
 pv_missing_days <- as.character(raw_daily$date[is.na(raw_daily$pv_kwh)])
+feed_in_missing_days <- as.character(raw_daily$date[is.na(raw_daily$electricity_feed_in_kwh)])
 heat_missing_days <- as.character(raw_daily$date[is.na(raw_daily$heat_kwh)])
 occupancy_missing_days <- as.character(raw_daily$date[is.na(raw_daily$nights)])
 electricity_missing_days <- as.character(raw_daily$date[is.na(raw_daily$electricity_kwh)])
+real_electricity_missing_days <- as.character(analysis_daily$date[is.na(analysis_daily$real_electricity_kwh)])
 weather_missing_days <- as.character(raw_daily$date[is.na(raw_daily$temp_mean_c)])
 winter_rows <- analysis_daily$season_cluster == "winter"
+feed_in_exceeds_pv_days_count <- safe_sum(analysis_daily$feed_in_exceeds_pv_flag)
 
 metadata <- list(
   generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
   timezone = "Europe/Vienna",
   source_files = list(
     strom = normalizePath(strom$path, winslash = "/", mustWork = TRUE),
+    strom_einspeisung = normalizePath(feed_in$path, winslash = "/", mustWork = TRUE),
     fernwaerme = normalizePath(fernwaerme$path, winslash = "/", mustWork = TRUE),
     fronius = normalizePath(file.path(data_dir, "fronius"), winslash = "/", mustWork = TRUE),
     meldewesen = normalizePath(file.path(data_dir, "meldewesen"), winslash = "/", mustWork = TRUE),
@@ -1384,6 +1968,7 @@ metadata <- list(
   ),
   source_metadata = list(
     strom = strom$meta,
+    strom_einspeisung = feed_in$meta,
     wetter = list(
       station_id = wetter$station_id,
       hdd_basis_c = 18
@@ -1394,6 +1979,7 @@ metadata <- list(
     coverage_end = "2025-12-31",
     row_counts = list(
       strom_quarter_hour = nrow(strom$raw),
+      strom_einspeisung_quarter_hour = nrow(feed_in$raw),
       raw_daily = nrow(raw_daily),
       analysis_daily = nrow(analysis_daily),
       raw_monthly = nrow(raw_monthly),
@@ -1403,10 +1989,13 @@ metadata <- list(
       analysis_guest_impact = nrow(analysis_guest_impact),
       analysis_guest_impact_seasonal = nrow(analysis_guest_impact_seasonal),
       analysis_guest_value = nrow(analysis_guest_value),
+      analysis_model_comparison = nrow(analysis_model_comparison),
       weather_daily = nrow(wetter$daily)
     ),
     missing_days = list(
       electricity = electricity_missing_days,
+      strom_einspeisung = feed_in_missing_days,
+      real_electricity = real_electricity_missing_days,
       fernwaerme = heat_missing_days,
       pv = pv_missing_days,
       occupancy = occupancy_missing_days,
@@ -1415,15 +2004,33 @@ metadata <- list(
     weather_flags = list(
       precipitation_negative_days = safe_sum(analysis_daily$precipitation_negative_flag),
       snow_depth_missing_days = safe_sum(analysis_daily$snow_depth_missing_flag)
+    ),
+    energy_flags = list(
+      feed_in_exceeds_pv_days = feed_in_exceeds_pv_days_count
     )
   ),
   summary = list(
     total_electricity_kwh = safe_sum(raw_daily$electricity_kwh),
+    total_grid_electricity_kwh = safe_sum(raw_daily$electricity_kwh),
+    total_electricity_feed_in_kwh = safe_sum(raw_daily$electricity_feed_in_kwh),
+    total_electricity_self_consumption_kwh = safe_sum(analysis_daily$electricity_self_consumption_kwh),
+    total_real_electricity_kwh = safe_sum(analysis_daily$real_electricity_kwh),
     total_heat_kwh = safe_sum(raw_daily$heat_kwh),
     total_heat_volume_m3 = safe_sum(raw_daily$heat_volume_m3),
     total_pv_kwh_known_days = safe_sum(raw_daily$pv_kwh),
     pv_days_available = sum(!is.na(raw_daily$pv_kwh)),
+    feed_in_days_available = sum(!is.na(raw_daily$electricity_feed_in_kwh)),
+    real_electricity_days_available = sum(!is.na(analysis_daily$real_electricity_kwh)),
+    electricity_autarky_ratio = safe_divide(
+      safe_sum(analysis_daily$electricity_self_consumption_kwh),
+      safe_sum(analysis_daily$real_electricity_kwh)
+    ),
+    pv_self_consumption_ratio = safe_divide(
+      safe_sum(analysis_daily$electricity_self_consumption_kwh),
+      safe_sum(raw_daily$pv_kwh)
+    ),
     total_nights = safe_sum(raw_daily$nights),
+    total_estimated_occupied_apartment_nights = safe_sum(analysis_daily$occupied_apartments_estimated),
     total_hdd18 = safe_sum(raw_daily$hdd18),
     winter_heat_kwh = safe_sum(analysis_daily$heat_kwh[winter_rows]),
     winter_heat_share = safe_divide(
@@ -1437,14 +2044,14 @@ metadata <- list(
     ),
     guest_days = safe_sum(analysis_daily$has_guests_flag),
     occupancy_drop_days = safe_sum(analysis_daily$occupancy_drop_flag),
-    electricity_additional_per_guest_night_kwh = electricity_guest_summary$additional_per_guest_night_kwh[1],
-    electricity_additional_per_guest_night_pct = electricity_guest_summary$additional_per_guest_night_pct_vs_baseline[1],
-    electricity_guest_attributed_kwh = safe_sum(analysis_daily$electricity_guest_impact_seasonal_kwh),
-    electricity_guest_attributed_share = safe_divide(
-      safe_sum(analysis_daily$electricity_guest_impact_seasonal_kwh),
-      safe_sum(analysis_daily$electricity_kwh)
+    real_electricity_additional_per_guest_night_kwh = real_electricity_guest_summary$additional_per_guest_night_kwh[1],
+    real_electricity_additional_per_guest_night_pct = real_electricity_guest_summary$additional_per_guest_night_pct_vs_baseline[1],
+    real_electricity_guest_attributed_kwh = safe_sum(analysis_daily$real_electricity_guest_impact_seasonal_kwh),
+    real_electricity_guest_attributed_share = safe_divide(
+      safe_sum(analysis_daily$real_electricity_guest_impact_seasonal_kwh),
+      safe_sum(analysis_daily$real_electricity_kwh)
     ),
-    electricity_model_residual_kwh = safe_sum(analysis_daily$electricity_model_residual_seasonal_kwh),
+    real_electricity_model_residual_kwh = safe_sum(analysis_daily$real_electricity_model_residual_seasonal_kwh),
     heat_additional_per_guest_night_kwh = heat_guest_summary$additional_per_guest_night_kwh[1],
     heat_additional_per_guest_night_pct = heat_guest_summary$additional_per_guest_night_pct_vs_baseline[1],
     heat_guest_attributed_kwh = safe_sum(analysis_daily$heat_guest_impact_seasonal_kwh),
@@ -1459,7 +2066,9 @@ metadata <- list(
       safe_sum(raw_daily$electricity_intervals)
     ),
     precipitation_negative_days = safe_sum(analysis_daily$precipitation_negative_flag),
-    correlation_nights_vs_electricity = cor_or_na(analysis_daily$nights, analysis_daily$electricity_kwh),
+    feed_in_exceeds_pv_days = feed_in_exceeds_pv_days_count,
+    correlation_nights_vs_grid_electricity = cor_or_na(analysis_daily$nights, analysis_daily$electricity_kwh),
+    correlation_nights_vs_real_electricity = cor_or_na(analysis_daily$nights, analysis_daily$real_electricity_kwh),
     correlation_nights_vs_heat = cor_or_na(analysis_daily$nights, analysis_daily$heat_kwh),
     correlation_heat_vs_hdd18 = cor_or_na(analysis_daily$heat_kwh, analysis_daily$hdd18),
     correlation_heat_vs_temp_mean = cor_or_na(analysis_daily$heat_kwh, analysis_daily$temp_mean_c),
@@ -1467,22 +2076,33 @@ metadata <- list(
       analysis_daily$nights[winter_rows],
       analysis_daily$heat_kwh[winter_rows]
     ),
-    correlation_electricity_vs_pv = cor_or_na(analysis_daily$electricity_kwh, analysis_daily$pv_kwh),
+    correlation_grid_electricity_vs_pv = cor_or_na(analysis_daily$electricity_kwh, analysis_daily$pv_kwh),
+    correlation_real_electricity_vs_pv = cor_or_na(analysis_daily$real_electricity_kwh, analysis_daily$pv_kwh),
     max_abs_monthly_heat_delta_kwh = safe_max(abs(raw_monthly$heat_delta_vs_export_kwh))
   ),
   models = list(
     heat_weather_baseline = heat_weather_model$summary,
     guest_impact = list(
-      electricity = electricity_guest_impact_model$model_summary,
-      heat = heat_guest_impact_model$model_summary
+      real_electricity = real_electricity_guest_impact_model$model_summary,
+      heat = heat_guest_impact_model$model_summary,
+      baseline_definition = "modellierte Referenz ohne Gaeste"
     ),
     guest_impact_segmented = list(
       segment_col = "season_cluster",
       segments = season_levels,
       fallback_days = list(
-        electricity = safe_sum(analysis_daily$electricity_guest_impact_segment == "all_days_fallback"),
+        real_electricity = safe_sum(analysis_daily$real_electricity_guest_impact_segment == "all_days_fallback"),
         heat = safe_sum(analysis_daily$heat_guest_impact_segment == "all_days_fallback")
+      ),
+      fallback_segments = list(
+        real_electricity = real_electricity_fallback_segments,
+        heat = heat_fallback_segments
       )
+    ),
+    validation_model_comparison = list(
+      required_model_ids = required_model_ids,
+      real_electricity = real_electricity_model_comparison_required,
+      heat = heat_model_comparison_required
     )
   ),
   assumptions = list(
@@ -1496,23 +2116,50 @@ metadata <- list(
     ),
     economic_interpretation = list(
       occupancy_model_unit = "guest_nights",
-      revenue_assumption_unit = "apartment_nights",
+      revenue_assumption_unit = "estimated_occupied_apartment_nights",
       note = paste(
-        "Guest value scenarios are only an approximation until the mapping",
-        "between guest nights and sold apartment nights is clarified."
+        "Revenue scenarios estimate sold apartment nights as",
+        "sum(ceiling(guest_nights / 2)) by day and season."
+      )
+    ),
+    guest_impact_baseline = list(
+      label = "modellierte Referenz ohne Gaeste",
+      note = paste(
+        "The no-guest baseline is a modeled counterfactual with guest-related inputs set to zero.",
+        "It is not a physical idle-state measurement."
       )
     )
   ),
   notes = c(
-    "Potential PV coverage and PV-to-heat metrics are calculated on day and month level only. They are not true self-consumption or feed-in metrics.",
     "Fronius data are missing for 2025-11-21, 2025-11-22, 2025-11-24 and 2025-12-25. Missing values stay NA and are not imputed.",
     "Fernwaerme export includes a closing meter row for 2026-01-01. This row is excluded from the 2025 day-level dataset.",
     "Strom timestamps are parsed in Europe/Vienna and include DST transitions with 92 and 100 quarter-hour intervals on switch days.",
+    "KELAG feed-in data are aggregated on the same daily basis as grid consumption. Real electricity is defined as grid electricity plus PV self-consumption.",
+    ifelse(
+      feed_in_exceeds_pv_days_count > 0,
+      sprintf(
+        "%d days have feed-in above recorded PV day totals. These days are flagged via feed_in_exceeds_pv_flag and self-consumption is clamped to the valid range.",
+        feed_in_exceeds_pv_days_count
+      ),
+      "No days with feed-in above recorded PV day totals were detected."
+    ),
     "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.",
-    "Guest impact uses daily nights as occupancy measure. Strom and Fernwaerme are modeled against nights; Fernwaerme is additionally controlled by HDD18.",
-    "Seasonal guest split exposes modeled basis, modeled guest impact and a separate residual line defined as measured consumption minus modeled total.",
+    "Potential PV-to-heat is calculated as the theoretical overlap between measured grid feed-in and daily Fernwaerme demand.",
+    "Guest impact baseline is documented as 'modellierte Referenz ohne Gaeste'. It is a model-based reference without guests, not a physical idle state.",
+    "Guest impact models use has_guests_flag, log1p(guest_nights), occupied_apartments_estimated, arrivals, calendar effects and weather controls; Fernwaerme additionally uses HDD18 and HDD18^2.",
+    "Validation output analysis_model_comparison.csv compares Verbrauch ~ hdd18, + has_guests_flag and + nights against extended operating models.",
+    "Guest value estimates convert guest nights to occupied apartment nights via max(3, ceil(guest_nights / 2)) on each day with guests.",
     "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and monthly aggregation to reduce distortion from mixed summer/winter behavior.",
-    "Transition-period Fernwaerme falls back to the all-days model when the seasonal coefficient would imply a negative guest impact.",
+    ifelse(
+      length(heat_fallback_segments),
+      paste(
+        "Segment fallback remains visible in analysis_guest_impact_seasonal.csv and the dashboard.",
+        "Fallback segments for Fernwaerme:",
+        paste(heat_fallback_segments, collapse = ", "),
+        "."
+      ),
+      "No Fernwaerme seasonal fallback segments were required after the todo4 model upgrade."
+    ),
     "Seasonal guest value scenarios use apartment-night prices of 75 EUR in summer and 85 EUR in winter.",
     "A heat tariff is not yet available in the repository. Additional heating cost per guest night is therefore shown as kWh and as a price formula, not as a fixed EUR amount.",
     "Negative precipitation values are treated as 0 mm and flagged via precipitation_negative_flag.",
@@ -1523,6 +2170,11 @@ metadata <- list(
 write.csv(
   strom$raw,
   file.path(output_dir, "raw_strom_quarter_hour.csv"),
+  row.names = FALSE
+)
+write.csv(
+  feed_in$raw,
+  file.path(output_dir, "raw_feed_in_quarter_hour.csv"),
   row.names = FALSE
 )
 write.csv(
@@ -1570,6 +2222,11 @@ write.csv(
   file.path(output_dir, "analysis_guest_value.csv"),
   row.names = FALSE
 )
+write.csv(
+  analysis_model_comparison,
+  file.path(output_dir, "analysis_model_comparison.csv"),
+  row.names = FALSE
+)
 
 write_json(
   metadata,
@@ -1590,6 +2247,13 @@ dashboard_data <- list(
         strom$raw$kwh[strom$raw$status_class == "replacement"]
       )
     ),
+    feed_in_quarter_hour = list(
+      points = to_point_pairs(feed_in$raw$timestamp_ms, feed_in$raw$kwh),
+      replacement_points = to_point_pairs(
+        feed_in$raw$timestamp_ms[feed_in$raw$status_class == "replacement"],
+        feed_in$raw$kwh[feed_in$raw$status_class == "replacement"]
+      )
+    ),
     daily = raw_daily,
     monthly = raw_monthly
   ),
@@ -1600,7 +2264,8 @@ dashboard_data <- list(
     event_summary = analysis_event_summary,
     guest_impact = analysis_guest_impact,
     guest_impact_seasonal = analysis_guest_impact_seasonal,
-    guest_value = analysis_guest_value
+    guest_value = analysis_guest_value,
+    model_comparison = analysis_model_comparison
   )
 )
 

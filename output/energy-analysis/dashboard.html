@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gaestehaus Rader - Energieanalyse</title>
+  <title>Gästehaus Rader - Energieanalyse</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -31,19 +31,21 @@
     }
 
     .shell {
-      width: min(1440px, calc(100vw - 32px));
-      margin: 24px auto 40px;
+      width: min(1440px, calc(100vw - 24px));
+      margin: clamp(12px, 2.4vw, 24px) auto clamp(24px, 4vw, 40px);
     }
 
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.9fr);
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
       gap: 20px;
-      padding: 28px;
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      background: linear-gradient(135deg, rgba(255, 250, 243, 0.92), rgba(255, 245, 232, 0.98));
-      box-shadow: var(--shadow);
+      padding: 8px 2px 0;
+    }
+
+    .page-header-copy {
+      min-width: 0;
+      max-width: min(900px, 100%);
     }
 
     .eyebrow {
@@ -57,29 +59,18 @@
 
     h1 {
       margin: 0 0 12px;
-      font-size: clamp(32px, 4vw, 52px);
-      line-height: 0.98;
+      font-size: clamp(28px, 6vw, 52px);
+      line-height: 1;
       letter-spacing: -0.04em;
     }
 
-    .hero p {
+    .page-header p {
       margin: 0;
       color: var(--muted);
       max-width: 68ch;
       line-height: 1.55;
     }
 
-    .downloads {
-      display: grid;
-      gap: 10px;
-      align-content: start;
-      padding: 18px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.58);
-      border: 1px solid rgba(32, 49, 39, 0.08);
-    }
-
-    .downloads h2,
     .notes h2,
     .panel h2 {
       margin: 0 0 12px;
@@ -87,19 +78,101 @@
       letter-spacing: 0.02em;
     }
 
-    .downloads a {
-      color: var(--ink);
-      text-decoration: none;
-      padding: 10px 12px;
-      border-radius: 12px;
-      background: rgba(31, 109, 91, 0.08);
-      border: 1px solid rgba(31, 109, 91, 0.12);
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 13px;
+    .export-menu {
+      position: relative;
+      flex: 0 0 auto;
+      margin-top: 6px;
     }
 
-    .downloads a:hover {
-      background: rgba(31, 109, 91, 0.12);
+    .export-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(32, 49, 39, 0.12);
+      background: rgba(255, 250, 243, 0.94);
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+      list-style: none;
+      box-shadow: var(--shadow);
+    }
+
+    .export-trigger::-webkit-details-marker {
+      display: none;
+    }
+
+    .export-trigger:hover {
+      background: #fffdf8;
+    }
+
+    .export-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .export-icon svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .export-label {
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .export-caret {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .export-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      z-index: 20;
+      width: min(360px, calc(100vw - 40px));
+      max-height: min(70vh, 480px);
+      overflow: auto;
+      padding: 8px;
+      border-radius: 18px;
+      border: 1px solid rgba(32, 49, 39, 0.12);
+      background: rgba(255, 250, 243, 0.98);
+      box-shadow: 0 20px 44px rgba(28, 34, 29, 0.16);
+    }
+
+    .export-item {
+      display: block;
+      padding: 12px 14px;
+      border-radius: 12px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .export-item:hover {
+      background: rgba(31, 109, 91, 0.08);
+    }
+
+    .export-item-title {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .export-item-file {
+      display: block;
+      margin-top: 4px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
     }
 
     .explain {
@@ -124,12 +197,13 @@
 
     .kpis {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 14px;
       margin-top: 18px;
     }
 
     .kpi {
+      min-width: 0;
       padding: 18px;
       border-radius: 18px;
       border: 1px solid var(--line);
@@ -148,10 +222,11 @@
 
     .kpi .value {
       display: block;
-      font-size: 28px;
+      font-size: clamp(24px, 4vw, 28px);
       line-height: 1;
       font-weight: 700;
       letter-spacing: -0.04em;
+      overflow-wrap: anywhere;
     }
 
     .kpi .hint {
@@ -163,18 +238,57 @@
 
     .notes {
       margin-top: 18px;
-      padding: 20px 22px;
       border-radius: 20px;
       background: rgba(255, 250, 243, 0.84);
       border: 1px solid var(--line);
       box-shadow: var(--shadow);
     }
 
+    .notes summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 22px;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .notes summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .notes summary::after {
+      content: "+";
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(31, 109, 91, 0.1);
+      color: var(--accent);
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 500;
+    }
+
+    .notes[open] summary::after {
+      content: "−";
+    }
+
     .notes ul {
       margin: 0;
-      padding-left: 18px;
+      padding: 0 22px 22px 40px;
       color: var(--muted);
       line-height: 1.55;
+    }
+
+    .notes-copy {
+      color: var(--muted);
+      line-height: 1.5;
     }
 
     .grid {
@@ -216,6 +330,7 @@
     }
 
     .panel {
+      min-width: 0;
       padding: 18px;
       border-radius: 22px;
       border: 1px solid var(--line);
@@ -235,17 +350,18 @@
 
     .chart-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 16px;
     }
 
     .value-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 16px;
     }
 
     .value-card {
+      min-width: 0;
       padding: 18px;
       border-radius: 18px;
       border: 1px solid rgba(32, 49, 39, 0.08);
@@ -264,7 +380,7 @@
 
     .value-card h3 {
       margin: 0 0 8px;
-      font-size: 24px;
+      font-size: clamp(20px, 3vw, 24px);
       letter-spacing: -0.03em;
     }
 
@@ -274,12 +390,13 @@
 
     .value-metrics {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
       margin-top: 16px;
     }
 
     .value-metric {
+      min-width: 0;
       padding: 12px;
       border-radius: 14px;
       border: 1px solid rgba(32, 49, 39, 0.08);
@@ -300,6 +417,7 @@
       font-size: 18px;
       line-height: 1.3;
       font-weight: 600;
+      overflow-wrap: anywhere;
     }
 
     .formula {
@@ -312,6 +430,8 @@
       font-size: 12px;
       line-height: 1.55;
       color: var(--ink);
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .card-note {
@@ -321,78 +441,218 @@
       line-height: 1.55;
     }
 
-    .chart { min-height: 360px; }
-    .chart.tall { min-height: 460px; }
+    .export-item-file,
+    .export-item-title {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
 
-    @media (max-width: 1080px) {
-      .hero,
-      .grid,
-      .kpis,
+    .chart { min-height: clamp(280px, 46vw, 360px); }
+    .chart.tall { min-height: clamp(320px, 60vw, 460px); }
+
+    @media (max-width: 980px) {
+      .page-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page-header {
+        gap: 14px;
+      }
+
+      .export-menu {
+        width: 100%;
+      }
+
+      .export-trigger {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .export-dropdown {
+        right: auto;
+        left: 0;
+        width: 100%;
+      }
+
+      .panel,
+      .kpi,
+      .value-card {
+        padding: 16px;
+        border-radius: 18px;
+      }
+
+      .explain {
+        padding: 14px 16px;
+        border-radius: 16px;
+      }
+
+      .notes {
+        border-radius: 18px;
+      }
+
+      .notes summary {
+        align-items: flex-start;
+        padding: 16px;
+      }
+
+      .notes ul {
+        padding: 0 16px 16px 32px;
+      }
+
       .chart-grid,
       .value-grid,
       .value-metrics {
         grid-template-columns: 1fr;
+      }
+
+      .chart {
+        min-height: 300px;
+      }
+
+      .chart.tall {
+        min-height: 340px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        width: calc(100vw - 16px);
+        margin: 10px auto 24px;
+      }
+
+      .page-header {
+        padding-top: 2px;
+      }
+
+      .eyebrow,
+      .section-kicker {
+        font-size: 11px;
+      }
+
+      h1 {
+        margin-bottom: 10px;
+      }
+
+      .page-header p,
+      .section-heading p,
+      .panel p,
+      .notes-copy,
+      .explain p {
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .panel h2,
+      .notes h2 {
+        margin-bottom: 10px;
+        font-size: 15px;
+      }
+
+      .kpi .label {
+        font-size: 11px;
+      }
+
+      .kpi .hint {
+        font-size: 12px;
+      }
+
+      .value-metric .value {
+        font-size: 16px;
+      }
+
+      .formula {
+        padding: 12px;
+        font-size: 11px;
+      }
+
+      .chart {
+        min-height: 260px;
+      }
+
+      .chart.tall {
+        min-height: 300px;
+      }
+
+      .export-dropdown {
+        max-height: 52vh;
+      }
+
+      .explain strong {
+        display: block;
+        margin: 0 0 4px;
       }
     }
   </style>
 </head>
 <body>
   <div class="shell">
-    <section class="hero">
-      <div>
-        <p class="eyebrow">Gaestehaus Rader</p>
+    <section class="page-header">
+      <div class="page-header-copy">
+        <p class="eyebrow">Gästehaus Rader</p>
         <h1>Energieanalyse 2025</h1>
         <p id="summary-text"></p>
       </div>
-      <aside class="downloads">
-        <h2>Exportdateien</h2>
-        <a href="raw_strom_quarter_hour.csv">raw_strom_quarter_hour.csv</a>
-        <a href="raw_daily_sources.csv">raw_daily_sources.csv</a>
-        <a href="raw_monthly_sources.csv">raw_monthly_sources.csv</a>
-        <a href="analysis_daily.csv">analysis_daily.csv</a>
-        <a href="analysis_monthly.csv">analysis_monthly.csv</a>
-        <a href="analysis_seasonal.csv">analysis_seasonal.csv</a>
-        <a href="analysis_event_summary.csv">analysis_event_summary.csv</a>
-        <a href="analysis_guest_impact.csv">analysis_guest_impact.csv</a>
-        <a href="analysis_guest_impact_seasonal.csv">analysis_guest_impact_seasonal.csv</a>
-        <a href="analysis_guest_value.csv">analysis_guest_value.csv</a>
-        <a href="metadata.json">metadata.json</a>
-      </aside>
+      <details class="export-menu">
+        <summary class="export-trigger" aria-label="Exporte herunterladen">
+          <span class="export-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 3V12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6.5 8.8L10 12.3L13.5 8.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 15.5H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="export-label">Export</span>
+          <span class="export-caret">▼</span>
+        </summary>
+        <div class="export-dropdown" id="export-menu"></div>
+      </details>
     </section>
 
     <section class="explain">
-      <p><strong>HDD18:</strong> Heizgradtage mit Basis 18 C. Vereinfacht: Fuer jeden Tag wird gemessen, wie weit die Tagesmitteltemperatur unter 18 C liegt. Je hoeher `HDD18`, desto kaelter der Tag und desto hoeher der erwartbare Heizbedarf.</p>
+      <p><strong>HDD18:</strong> Heizgradtage mit Basis 18 C. Vereinfacht: Für jeden Tag wird gemessen, wie weit die Tagesmitteltemperatur unter 18 C liegt. Je höher `HDD18`, desto kälter der Tag und desto höher der erwartbare Heizbedarf.</p>
     </section>
 
     <section class="kpis" id="kpis"></section>
 
-    <section class="notes">
-      <h2>Hinweise zur Datenbasis</h2>
+    <details class="notes">
+      <summary>
+        <div>
+          <h2>Hinweise zur Datenbasis</h2>
+          <div class="notes-copy">Qualität, Annahmen und Modellhinweise zur aktuellen Auswertung.</div>
+        </div>
+      </summary>
       <ul id="notes-list"></ul>
-    </section>
+    </details>
 
     <section class="dashboard-section">
       <div class="section-heading">
         <p class="section-kicker">Datenbasis</p>
         <h2>Rohdaten</h2>
-        <p>Dieser Abschnitt zeigt die reine Quellperspektive auf Tagesbasis: Strom und PV zusammen, Fernwaerme separat und dazu die Belegung. So bleiben die unterschiedlichen Energiesysteme lesbar und nicht in einem einzigen Rohdatenchart vermischt.</p>
+        <p>Dieser Abschnitt zeigt die reine Quellperspektive auf Tagesbasis: Netzstrom, PV-Erzeugung und Einspeisung zusammen, Fernwärme separat und dazu die Belegung. So bleibt sichtbar, welche Energieströme direkt gemessen wurden und welche Kennzahlen erst später abgeleitet werden.</p>
       </div>
       <div class="grid">
         <article class="panel">
-          <h2>Rohdaten: Tageswerte Strom und PV</h2>
-          <p>Taegliche Stromverbraeuche zusammen mit der PV-Erzeugung.</p>
+          <h2>Rohdaten: Tageswerte Strom, PV und Einspeisung</h2>
+          <p>Täglicher Netzstrombezug zusammen mit PV-Erzeugung und gemessener Einspeisung.</p>
           <div class="chart" id="chart-raw-daily-electricity-pv"></div>
         </article>
 
         <article class="panel">
-          <h2>Rohdaten: Tageswerte Fernwaerme</h2>
-          <p>Taegliche Fernwaerme getrennt von Strom und PV, damit die Skala lesbar bleibt.</p>
+          <h2>Rohdaten: Tageswerte Fernwärme</h2>
+          <p>Tägliche Fernwärme getrennt von Strom und PV, damit die Skala lesbar bleibt.</p>
           <div class="chart" id="chart-raw-daily-heat"></div>
         </article>
 
         <article class="panel">
           <h2>Rohdaten: Belegung</h2>
-          <p>Taegliche Naechtigungen aus dem Meldewesen.</p>
+          <p>Tägliche Nächtigungen aus dem Meldewesen.</p>
           <div class="chart" id="chart-raw-occupancy"></div>
         </article>
 
@@ -401,20 +661,20 @@
 
     <section class="dashboard-section">
       <div class="section-heading">
-        <p class="section-kicker">Zusammenhaenge</p>
+        <p class="section-kicker">Zusammenhänge</p>
         <h2>Energie, Wetter Und Nutzung</h2>
-        <p>Diese Gruppe setzt Rohdaten auf Monatsbasis in Beziehung. Hier sieht man die wichtigsten Zusammenhaenge zwischen Verbrauch, Wetter, PV und Belegung in einer kompakten Uebersicht.</p>
+        <p>Diese Gruppe setzt Rohdaten auf Monatsbasis in Beziehung. Hier sieht man die wichtigsten Zusammenhänge zwischen Verbrauch, Wetter, PV und Belegung in einer kompakten Übersicht.</p>
       </div>
       <div class="grid">
         <article class="panel wide">
-          <h2>Monatsvergleich Fernwaerme und Wetter</h2>
-          <p>Monatliche Fernwaerme zusammen mit den wetterbezogenen Heiztreibern HDD18 und Tagesmitteltemperatur.</p>
+          <h2>Monatsvergleich Fernwärme und Wetter</h2>
+          <p>Monatliche Fernwärme zusammen mit den wetterbezogenen Heiztreibern HDD18 und Tagesmitteltemperatur.</p>
           <div class="chart" id="chart-raw-monthly-energy"></div>
         </article>
 
         <article class="panel wide">
-          <h2>Monatsvergleich Strom, PV und PV-Wetter</h2>
-          <p>Monatliche Strom- und PV-Werte zusammen mit Sonnenscheindauer als wichtigster verfuegbarer PV-Wettergroesse.</p>
+          <h2>Monatsvergleich Stromfluss und PV-Wetter</h2>
+          <p>Monatliche Aufteilung in Netzstrom, PV-Eigenverbrauch und Einspeisung zusammen mit Sonnenscheindauer als wichtigste verfügbare PV-Wettergröße.</p>
           <div class="chart" id="chart-raw-monthly-weather"></div>
         </article>
       </div>
@@ -424,39 +684,45 @@
       <div class="section-heading">
         <p class="section-kicker">Betriebsanalyse</p>
         <h2>Verbrauch Und Energiefluss</h2>
-        <p>Diese Section zeigt die operativen Wirkzusammenhaenge im Betrieb: PV-Balance, Verbrauch pro Naechtigung und den Temperaturbezug der Fernwaerme.</p>
+        <p>Diese Section zeigt die operativen Wirkzusammenhänge im Betrieb: echten Stromfluss mit Eigenverbrauch und Einspeisung, die Nutzung der PV-Erzeugung und den Temperaturbezug von Fernwärme und realem Stromverbrauch.</p>
       </div>
       <div class="grid">
         <article class="panel">
-          <h2>Analyse: PV-Balance und Restlast</h2>
-          <p>Restlast nach PV ist nur als Tagessaldo approximiert. Zeitgleiche Eigenverbrauchsanalyse ist damit noch nicht abgedeckt.</p>
+          <h2>Analyse: Energiefluss Strom und PV</h2>
+          <p>Die gestapelten Flächen zeigen den realen Stromverbrauch als Summe aus PV-Eigenverbrauch und Netzstrom. Einspeisung bleibt als eigener Stromfluss sichtbar.</p>
           <div class="chart" id="chart-analysis-balance"></div>
         </article>
 
         <article class="panel">
-          <h2>Analyse: Verbrauch pro Naechtigung</h2>
-          <p>Nur Tage mit Naechtigungen liefern Kennzahlen pro Nacht. Zusaetzlich wird die temperaturbereinigte Fernwaerme gezeigt.</p>
-          <div class="chart" id="chart-analysis-intensity"></div>
+          <h2>Analyse: PV-Nutzung</h2>
+          <p>Diese Sicht trennt den Anteil der PV-Erzeugung, der direkt im Haus genutzt wird, von dem Anteil, der ins Netz geht. So wird die Qualität der PV-Nutzung ohne vereinfachte Lastsalden sichtbar.</p>
+          <div class="chart" id="chart-analysis-pv-usage"></div>
         </article>
 
         <article class="panel wide">
-          <h2>Analyse: Fernwaerme gegen Temperatur</h2>
-          <p>Scatter-Plot mit Trennung zwischen Tagen mit und ohne Naechtigungen.</p>
+          <h2>Analyse: Fernwärme gegen Temperatur</h2>
+          <p>Scatter-Plot mit Trennung zwischen Tagen mit und ohne Nächtigungen.</p>
           <div class="chart" id="chart-analysis-temp-scatter"></div>
+        </article>
+
+        <article class="panel wide">
+          <h2>Analyse: Realer Strom gegen Temperatur</h2>
+          <p>Scatter-Plot mit Trennung zwischen Tagen mit und ohne Nächtigungen. Verwendet wird der reale Stromverbrauch aus Netzstrom und PV-Eigenverbrauch.</p>
+          <div class="chart" id="chart-analysis-electricity-temp-scatter"></div>
         </article>
       </div>
     </section>
 
     <section class="dashboard-section">
       <div class="section-heading">
-        <p class="section-kicker">Gaestesicht</p>
-        <h2>Gaeste Und Wertschoepfung</h2>
-        <p>Diese Gruppe fokussiert auf den Zusatzverbrauch durch Gaeste und die wirtschaftliche Einordnung. Zuerst kommt die Aufteilung in Basisverbrauch und Gastmehrverbrauch, danach die Modellparameter und schliesslich die Wertschoepfungs-Szenarien.</p>
+        <p class="section-kicker">Gästesicht</p>
+        <h2>Gäste Und Wertschöpfung</h2>
+        <p>Diese Gruppe fokussiert auf den Zusatzverbrauch durch Gäste und die wirtschaftliche Einordnung. Zuerst kommt die Aufteilung in Basisverbrauch und Gastmehrverbrauch, danach die Modellparameter und schliesslich die Wertschöpfungs-Szenarien.</p>
       </div>
       <div class="grid">
         <article class="panel wide">
-          <h2>Analyse: Gaesteeffekt</h2>
-          <p>Als Gastmass wird die Anzahl der Naechtigungen pro Tag verwendet. Fuer die Aufteilung in Eigennutzung und gaestegetriebenen Verbrauch werden saisonal getrennte Tagesmodelle gerechnet und danach auf Monatsebene aggregiert. Die gestapelten Flaechen zeigen die modellierte Aufteilung in Basisverbrauch und Zusatz durch Gaeste. Die Vollinie zeigt den gemessenen Gesamtverbrauch, die gestrichelte Linie den Modellrest und die zweite Achse die Naechtigungen.</p>
+          <h2>Analyse: Gästeeffekt</h2>
+          <p>Die Referenz ist eine modellierte Sicht ohne Gäste, nicht ein physischer Leerlauf. Für die Aufteilung werden saisonal getrennte Tagesmodelle mit Gast-Flag, nichtlinearer Belegung, geschätzten belegten Appartements, Check-ins sowie Wetter- und Kalendereffekten gerechnet und danach auf Monatsebene aggregiert. Beim Strom basiert diese Sicht auf realem Stromverbrauch. Die gestapelten Flächen zeigen Referenz ohne Gäste und Zusatz durch Gäste, die Vollinie den gemessenen Gesamtverbrauch.</p>
           <div class="chart-grid">
             <div class="chart" id="chart-analysis-guest-split-electricity"></div>
             <div class="chart" id="chart-analysis-guest-split-heat"></div>
@@ -464,8 +730,8 @@
         </article>
 
         <article class="panel wide">
-          <h2>Analyse: Modellparameter Gaesteeffekt</h2>
-          <p>Die Balken zeigen den geschätzten Mehrverbrauch pro zusaetzlicher Naechtigung sowie den insgesamt gaesteattribuierten Jahresverbrauch aus dem Jahresmodell. Die Monatslinien oben nutzen fuer die Aufteilung dagegen die robusteren saisonalen Tagesmodelle.</p>
+          <h2>Analyse: Modellparameter Gästeeffekt</h2>
+          <p>Die Balken zeigen den durchschnittlich gästeattribuierten Verbrauch je Gastnacht sowie den insgesamt gästeattribuierten Jahresverbrauch aus dem Jahresmodell. Der Pflichtvergleich M1 bis M3 liegt zusätzlich als `analysis_model_comparison.csv` vor; die Monatslinien oben nutzen für die Aufteilung die robusteren saisonalen Tagesmodelle.</p>
           <div class="chart-grid">
             <div class="chart" id="chart-analysis-guest-marginal"></div>
             <div class="chart" id="chart-analysis-guest-total"></div>
@@ -473,8 +739,17 @@
         </article>
 
         <article class="panel wide">
-          <h2>Analyse: Wertschoepfung je zusaetzlicher Naechtigung</h2>
-          <p>Sommer und Winter werden getrennt gerechnet. Die Erlosszenarien nutzen 75 EUR im Sommer und 85 EUR im Winter je Appartement/Nacht; das Modell selbst arbeitet mit Gaestennaechtigungen. Die Kennzahl ist deshalb als Management-Szenario zu lesen, nicht als finale Deckungsbeitragsrechnung. Der Stromteil ist mit dem hinterlegten Tarif bewertet, der Heizteil bleibt bewusst als Preisformel offen.</p>
+          <h2>Analyse: Modellparameter Gästeeffekt nach Saison</h2>
+          <p>Dieselbe Sicht wie oben, aber getrennt nach Winter, Übergang und Sommer. So wird sichtbar, ob Mehrverbrauch je Gastnacht und der gesamte Gästeanteil saisonal unterschiedlich ausfallen. Fallback-Saisonen aus dem Jahresmodell bleiben im Tooltip sichtbar.</p>
+          <div class="chart-grid">
+            <div class="chart" id="chart-analysis-guest-marginal-seasonal"></div>
+            <div class="chart" id="chart-analysis-guest-total-seasonal"></div>
+          </div>
+        </article>
+
+        <article class="panel wide">
+          <h2>Analyse: Wertschöpfung als Saison-Szenario</h2>
+          <p>Sommer und Winter werden getrennt gerechnet. Die Erlösszenarien nutzen 75 EUR im Sommer und 85 EUR im Winter je Appartement/Nacht. Die Anzahl der verkauften Appartement-Nächte wird als Summe `max(3, ceil(Nächtigungen / 2))` je Tag geschätzt. Der Stromteil basiert auf realem Stromverbrauch und ist mit dem hinterlegten Tarif bewertet; der Heizteil bleibt bewusst als Preisformel offen.</p>
           <div class="value-grid" id="guest-value-cards"></div>
         </article>
       </div>
@@ -484,18 +759,18 @@
       <div class="section-heading">
         <p class="section-kicker">Vergleiche</p>
         <h2>Saison Und Ereignisse</h2>
-        <p>Zum Schluss werden die Daten in typische Management-Sichten gegliedert: saisonale Cluster und Ereignisgruppen. Diese Charts eignen sich gut fuer den Vergleich von Winter, Uebergang und Sommer sowie fuer Vorher-Nachher-Betrachtungen.</p>
+        <p>Zum Schluss werden die Daten in typische Management-Sichten gegliedert: saisonale Cluster und Ereignisgruppen. Diese Charts eignen sich gut für den Vergleich von Winter, Übergang und Sommer sowie für Vorher-Nachher-Betrachtungen.</p>
       </div>
       <div class="grid">
         <article class="panel">
           <h2>Analyse: Saisonvergleich</h2>
-          <p>Winter, Uebergangszeit und Sommer werden getrennt ausgewertet.</p>
+          <p>Winter, Übergangszeit und Sommer werden getrennt ausgewertet.</p>
           <div class="chart" id="chart-analysis-seasonal"></div>
         </article>
 
         <article class="panel wide">
           <h2>Analyse: Ereignisse</h2>
-          <p>Die Ereignisanalyse ist in Niveau und Veraenderung getrennt. So werden Durchschnittswerte und Vorher-Nachher-Effekte nicht mehr im selben Chart vermischt.</p>
+          <p>Die Ereignisanalyse ist in Niveau und Veränderung getrennt. So werden Durchschnittswerte und Vorher-Nachher-Effekte nicht mehr im selben Chart vermischt.</p>
           <div class="chart-grid">
             <div class="chart" id="chart-analysis-events-level"></div>
             <div class="chart" id="chart-analysis-events-delta"></div>
@@ -540,11 +815,19 @@
       const analysisSeasonal = data.analysis.seasonal || [];
       const eventSummary = data.analysis.event_summary || [];
       const guestImpact = data.analysis.guest_impact || [];
+      const guestImpactSeasonal = data.analysis.guest_impact_seasonal || [];
       const guestValue = data.analysis.guest_value || [];
-      const guestImpactOrder = ['electricity', 'heat'];
+      const modelComparison = data.analysis.model_comparison || [];
+      const guestImpactOrder = ['real_electricity', 'heat'];
+      const guestImpactSeasonOrder = ['winter', 'transition', 'summer'];
       const orderedGuestImpact = guestImpactOrder
         .map((key) => guestImpact.find((row) => row.metric_key === key))
         .filter(Boolean);
+      const availableGuestImpactSeasonKeys = guestImpactSeasonOrder.filter((seasonKey) =>
+        guestImpactOrder.some((metricKey) =>
+          guestImpactSeasonal.find((row) => row.metric_key === metricKey && row.segment_key === seasonKey)
+        )
+      );
       const guestValueOrder = ['summer', 'winter'];
       const orderedGuestValue = guestValueOrder
         .map((key) => guestValue.find((row) => row.season_cluster === key))
@@ -562,7 +845,6 @@
         .map((key) => eventSummary.find((row) => row.event_group === key))
         .filter(Boolean);
       const summary = data.metadata.summary;
-      const quality = data.metadata.quality;
       const heatModel = data.metadata.models ? data.metadata.models.heat_weather_baseline : null;
 
       const fmt = (value, digits = 1) => {
@@ -596,6 +878,23 @@
           minimumFractionDigits: digits,
           maximumFractionDigits: digits
         }).format(value);
+      };
+
+      const displayText = (value) => {
+        if (value === null || value === undefined) {
+          return '';
+        }
+
+        return String(value)
+          .replace(/Fernwaerme/g, 'Fernwärme')
+          .replace(/Gaeste/g, 'Gäste')
+          .replace(/gaeste/g, 'gäste')
+          .replace(/Naechtigungen/g, 'Nächtigungen')
+          .replace(/Uebergang/g, 'Übergang')
+          .replace(/Wertschoepfung/g, 'Wertschöpfung')
+          .replace(/Geschaetzt/g, 'Geschätzt')
+          .replace(/geschaetzt/g, 'geschätzt')
+          .replace(/Qualitaet/g, 'Qualität');
       };
 
       const toSeries = (rows, yKey, xKey = 'timestamp_ms') =>
@@ -670,19 +969,52 @@
 
       const seasonLabel = (value) => ({
         winter: 'Winter',
-        transition: 'Uebergang',
+        transition: 'Übergang',
         summer: 'Sommer'
       })[value] || value;
 
       const eventLabel = (value) => ({
         all_days: 'Alle Tage',
         guest_days: 'Gasttage',
-        non_guest_days: 'Ohne Gaeste',
-        occupancy_increase_days: 'Mehr Naechtigungen',
-        occupancy_drop_days: 'Weniger Naechtigungen',
-        winter_guest_days: 'Winter mit Gaesten',
-        winter_non_guest_days: 'Winter ohne Gaeste'
+        non_guest_days: 'Ohne Gäste',
+        occupancy_increase_days: 'Mehr Nächtigungen',
+        occupancy_drop_days: 'Weniger Nächtigungen',
+        winter_guest_days: 'Winter mit Gästen',
+        winter_non_guest_days: 'Winter ohne Gäste'
       })[value] || value;
+
+      const guestImpactSeasonRow = (metricKey, seasonKey) =>
+        guestImpactSeasonal.find((row) => row.metric_key === metricKey && row.segment_key === seasonKey) || null;
+
+      const guestImpactSeasonPoints = (metricKey, valueKey) =>
+        availableGuestImpactSeasonKeys.map((seasonKey) => {
+          const row = guestImpactSeasonRow(metricKey, seasonKey);
+          return {
+            y: row && row[valueKey] !== null && row[valueKey] !== undefined
+              ? row[valueKey]
+              : null,
+            custom: row
+          };
+        });
+
+      const guestImpactSeasonSourceLabel = (value) => ({
+        segment: 'Saisonmodell',
+        all_days_fallback_negative_or_sparse: 'Jahresmodell-Fallback'
+      })[value] || displayText(value);
+
+      const uniqueMetricRows = (points) => {
+        const byMetric = new Map();
+        (points || []).forEach((point) => {
+          const row = point.point && point.point.custom;
+          if (row && row.metric_key && !byMetric.has(row.metric_key)) {
+            byMetric.set(row.metric_key, row);
+          }
+        });
+
+        return guestImpactOrder
+          .map((metricKey) => byMetric.get(metricKey))
+          .filter(Boolean);
+      };
 
       const prettyFormula = (formula) => {
         if (!formula) {
@@ -693,12 +1025,29 @@
           .replace(/heat_tariff_inc_vat_eur_per_kwh/g, 'FW-Preis inkl. USt');
       };
 
+      const requiredModelOrder = [
+        'model1_hdd18',
+        'model2_hdd18_has_guests_flag',
+        'model3_hdd18_has_guests_flag_nights'
+      ];
+
+      const validationLine = (metricKey, metricLabel) => {
+        const rows = requiredModelOrder
+          .map((modelId) => modelComparison.find((row) => row.metric_key === metricKey && row.model_id === modelId))
+          .filter(Boolean);
+
+        if (rows.length !== requiredModelOrder.length) {
+          return null;
+        }
+
+        return `Pflichtvergleich ${metricLabel} R² M1/M2/M3: ${rows.map((row) => fmt(row.r_squared, 2)).join(' / ')}`;
+      };
+
       const guestSplitTooltip = ({
         actualKey,
         baselineKey,
         guestKey,
         modeledKey,
-        residualKey,
         fallbackKey,
         consumptionLabel
       }) => function () {
@@ -712,10 +1061,9 @@
           `<b>${Highcharts.dateFormat('%B %Y', row.month_start_ms)}</b>`,
           `${consumptionLabel} gemessen: ${fmt(row[actualKey], 1)} kWh`,
           `Modellsumme: ${fmt(row[modeledKey], 1)} kWh`,
-          `Basisverbrauch / Eigennutzung: ${fmt(row[baselineKey], 1)} kWh`,
-          `Zusatz durch Gaeste: ${fmt(row[guestKey], 1)} kWh`,
-          `Residual Ist - Modellsumme: ${fmt(row[residualKey], 1)} kWh`,
-          `Naechtigungen: ${fmt(row.nights, 0)}`
+          `Modellierte Referenz ohne Gäste: ${fmt(row[baselineKey], 1)} kWh`,
+          `Zusatz durch Gäste: ${fmt(row[guestKey], 1)} kWh`,
+          `Nächtigungen: ${fmt(row.nights, 0)}`
         ];
 
         if (row[fallbackKey] > 0) {
@@ -736,21 +1084,52 @@
       const heatTrendNoGuests = linearTrendSeries(heatScatterNoGuests);
       const heatTrendWithGuests = linearTrendSeries(heatScatterWithGuests);
 
+      const electricityScatterNoGuests = analysisDaily
+        .filter((row) => row.has_guests_flag === 0 && row.temp_mean_c !== null && row.real_electricity_kwh !== null)
+        .map((row) => ({ x: row.temp_mean_c, y: row.real_electricity_kwh, custom: row }));
+
+      const electricityScatterWithGuests = analysisDaily
+        .filter((row) => row.has_guests_flag === 1 && row.temp_mean_c !== null && row.real_electricity_kwh !== null)
+        .map((row) => ({ x: row.temp_mean_c, y: row.real_electricity_kwh, custom: row }));
+
+      const electricityTrendNoGuests = linearTrendSeries(electricityScatterNoGuests);
+      const electricityTrendWithGuests = linearTrendSeries(electricityScatterWithGuests);
+
       document.getElementById('summary-text').textContent =
-        'Die Pipeline fuehrt Rohdaten aus Strom, Fernwaerme, PV, Meldewesen und Wetter zu Tages-, Monats- und Saison-Datensaetzen zusammen. ' +
-        'Das Dashboard zeigt Rohdaten, saisonale Vergleiche, temperaturbereinigte Kennzahlen fuer die Fernwaerme, den modellierten Gaesteeffekt, die monatliche Aufteilung in Eigennutzung versus Naechtigungen inklusive Modellrest und das theoretische PV-zu-Waerme-Potenzial.';
+        'Das Dashboard verdichtet Netzstrom, PV, Fernwärme, Wetter und Belegung für 2025 zu einer lesbaren Betriebsansicht. ' +
+        'Im Fokus stehen realer Stromverbrauch, wettergetriebene Fernwärme und der Zusammenhang mit der Auslastung.';
+
+      const downloadItems = [
+        { file: 'analysis_monthly.csv', label: 'Analyse monatlich', description: 'Monatliche Kennzahlen für Strom, Fernwärme, PV, Wetter und Belegung.' },
+        { file: 'analysis_daily.csv', label: 'Analyse täglich', description: 'Tägliche Analysewerte für den gesamten Beobachtungszeitraum.' },
+        { file: 'analysis_seasonal.csv', label: 'Analyse saisonal', description: 'Verdichtung nach Winter, Übergang und Sommer.' },
+        { file: 'analysis_event_summary.csv', label: 'Ereignisvergleich', description: 'Vergleich von Tagen mit und ohne Gäste sowie Belegungswechseln.' },
+        { file: 'analysis_guest_impact.csv', label: 'Gästeeffekt gesamt', description: 'Modellierte Zusatzverbräuche pro Gastnacht auf Jahressicht.' },
+        { file: 'analysis_guest_impact_seasonal.csv', label: 'Gästeeffekt saisonal', description: 'Saisonale Aufteilung des modellierten Gästeeffekts.' },
+        { file: 'analysis_guest_value.csv', label: 'Gästewert', description: 'Saisonale Wert- und Kostenszenarien für die Belegung.' },
+        { file: 'analysis_model_comparison.csv', label: 'Modellvergleich', description: 'Vergleich einfacher und erweiterter Verbrauchsmodelle.' },
+        { file: 'raw_daily_sources.csv', label: 'Rohdaten täglich', description: 'Zusammengeführte tägliche Quelldaten vor den Analyseableitungen.' },
+        { file: 'raw_monthly_sources.csv', label: 'Rohdaten monatlich', description: 'Monatlich aggregierte Rohdaten aus den Quellen.' },
+        { file: 'raw_strom_quarter_hour.csv', label: 'Rohdaten Strom Viertelstunde', description: 'Viertelstundenwerte des Netzstrombezugs.' },
+        { file: 'raw_feed_in_quarter_hour.csv', label: 'Rohdaten Einspeisung Viertelstunde', description: 'Viertelstundenwerte der Netzeinspeisung.' },
+        { file: 'metadata.json', label: 'Metadaten', description: 'Quelle, Annahmen, Datenqualität und Modellmetadaten als JSON.' }
+      ];
+
+      document.getElementById('export-menu').innerHTML = downloadItems.map((item) => `
+        <a class="export-item" href="${item.file}" download="${item.file}">
+          <span class="export-item-title">${item.label}</span>
+          <span class="export-item-file">${item.file}</span>
+        </a>
+      `).join('');
 
       const kpis = [
-        { label: 'Strom gesamt', value: `${fmt(summary.total_electricity_kwh, 0)} kWh`, hint: 'Summe 2025' },
-        { label: 'Fernwaerme gesamt', value: `${fmt(summary.total_heat_kwh, 0)} kWh`, hint: 'Tagessummen 2025' },
-        { label: 'HDD18 gesamt', value: fmt(summary.total_hdd18, 0), hint: 'Heizgradtage Basis 18C' },
-        { label: 'Winteranteil FW', value: fmtPct(summary.winter_heat_share), hint: `${fmt(summary.winter_heat_kwh, 0)} kWh` },
-        { label: 'PV zu Waerme', value: `${fmt(summary.total_potential_pv_to_heat_kwh, 0)} kWh`, hint: fmtPct(summary.potential_pv_to_heat_share) },
-        { label: 'Naechtigungen', value: fmt(summary.total_nights, 0), hint: 'Belegungsbasis 2025' },
-        { label: 'Gasttage', value: fmt(summary.guest_days, 0), hint: `Tage mit Naechtigungen > 0` },
-        { label: 'PV bekannte Tage', value: `${fmt(summary.total_pv_kwh_known_days, 0)} kWh`, hint: `${fmt(summary.pv_days_available, 0)} Tage mit Daten` },
-        { label: 'Ersatzwerte Strom', value: fmt(summary.electricity_replacement_intervals, 0), hint: fmtPct(summary.electricity_replacement_share) },
-        { label: 'Wetterflags', value: fmt(summary.precipitation_negative_days, 0), hint: 'Tage mit rr < 0' }
+        { label: 'Fernwärme gesamt', value: `${fmt(summary.total_heat_kwh, 0)} kWh`, hint: 'Tagessummen 2025' },
+        { label: 'Gesamtstrom', value: `${fmt(summary.total_real_electricity_kwh, 0)} kWh`, hint: 'Netzstrom + PV-Eigenverbrauch' },
+        { label: 'Eigenverbrauch', value: `${fmt(summary.total_electricity_self_consumption_kwh, 0)} kWh`, hint: 'PV direkt im Haus genutzt' },
+        { label: 'Überschuss', value: `${fmt(summary.total_electricity_feed_in_kwh, 0)} kWh`, hint: 'Ins Netz eingespeist' },
+        { label: 'PV gesamt', value: `${fmt(summary.total_pv_kwh_known_days, 0)} kWh`, hint: 'Summe an bekannten PV-Tagen' },
+        { label: 'Nächtigungen', value: fmt(summary.total_nights, 0), hint: 'Belegungsbasis 2025' },
+        { label: 'PV bekannte Tage', value: fmt(summary.pv_days_available, 0), hint: 'Tage mit Fronius-Daten' }
       ];
 
       document.getElementById('kpis').innerHTML = kpis.map((kpi) => `
@@ -763,65 +1142,71 @@
 
       const notes = [
         ...data.metadata.notes,
-        `Korrelation Naechtigungen vs. Strom: ${fmt(summary.correlation_nights_vs_electricity, 2)}`,
-        `Korrelation Naechtigungen vs. Fernwaerme: ${fmt(summary.correlation_nights_vs_heat, 2)}`,
-        `Korrelation Fernwaerme vs. HDD18: ${fmt(summary.correlation_heat_vs_hdd18, 2)}`,
-        `Korrelation Fernwaerme vs. Temperatur: ${fmt(summary.correlation_heat_vs_temp_mean, 2)}`,
-        `Korrelation Winter Fernwaerme vs. Naechtigungen: ${fmt(summary.correlation_heat_vs_nights_winter, 2)}`,
-        `1 zusaetzliche Naechtigung laut Modell: Strom +${fmt(summary.electricity_additional_per_guest_night_kwh, 2)} kWh (${fmtPct(summary.electricity_additional_per_guest_night_pct)})`,
-        `1 zusaetzliche Naechtigung laut Modell: Fernwaerme +${fmt(summary.heat_additional_per_guest_night_kwh, 2)} kWh (${fmtPct(summary.heat_additional_per_guest_night_pct)})`,
-        `Geschaetzter Jahresverbrauch durch Gaeste: Strom ${fmt(summary.electricity_guest_attributed_kwh, 0)} kWh (${fmtPct(summary.electricity_guest_attributed_share)}), Fernwaerme ${fmt(summary.heat_guest_attributed_kwh, 0)} kWh (${fmtPct(summary.heat_guest_attributed_share)})`,
-        `Residual Jahresmodell Strom: ${fmt(summary.electricity_model_residual_kwh, 0)} kWh, Fernwaerme: ${fmt(summary.heat_model_residual_kwh, 0)} kWh`,
-        `Maximale Abweichung Fernwaerme Monat Tagessumme vs. Export: ${fmt(summary.max_abs_monthly_heat_delta_kwh, 0)} kWh`,
+        `Korrelation Nächtigungen vs. Netzstrom: ${fmt(summary.correlation_nights_vs_grid_electricity, 2)}`,
+        `Korrelation Nächtigungen vs. realer Stromverbrauch: ${fmt(summary.correlation_nights_vs_real_electricity, 2)}`,
+        `Korrelation Nächtigungen vs. Fernwärme: ${fmt(summary.correlation_nights_vs_heat, 2)}`,
+        `Korrelation Fernwärme vs. HDD18: ${fmt(summary.correlation_heat_vs_hdd18, 2)}`,
+        `Korrelation Fernwärme vs. Temperatur: ${fmt(summary.correlation_heat_vs_temp_mean, 2)}`,
+        `Korrelation Winter Fernwärme vs. Nächtigungen: ${fmt(summary.correlation_heat_vs_nights_winter, 2)}`,
+        `Durchschnittlich gästeattribuiert je Gastnacht: realer Strom ${fmt(summary.real_electricity_additional_per_guest_night_kwh, 2)} kWh (${fmtPct(summary.real_electricity_additional_per_guest_night_pct)})`,
+        `Durchschnittlich gästeattribuiert je Gastnacht: Fernwärme ${fmt(summary.heat_additional_per_guest_night_kwh, 2)} kWh (${fmtPct(summary.heat_additional_per_guest_night_pct)})`,
+        `Geschätzter Jahresverbrauch durch Gäste: realer Strom ${fmt(summary.real_electricity_guest_attributed_kwh, 0)} kWh (${fmtPct(summary.real_electricity_guest_attributed_share)}), Fernwärme ${fmt(summary.heat_guest_attributed_kwh, 0)} kWh (${fmtPct(summary.heat_guest_attributed_share)})`,
+        validationLine('real_electricity', 'Realer Stromverbrauch'),
+        validationLine('heat', 'Fernwärme'),
+        `Maximale Abweichung Fernwärme Monat Tagessumme vs. Export: ${fmt(summary.max_abs_monthly_heat_delta_kwh, 0)} kWh`,
         `Heat-Modell: Intercept ${fmt(heatModel ? heatModel.intercept : null, 1)} kWh, HDD18-Slope ${fmt(heatModel ? heatModel.hdd18_slope : null, 2)}`
-      ];
+      ].filter(Boolean);
 
-      document.getElementById('notes-list').innerHTML = notes.map((note) => `<li>${note}</li>`).join('');
+      document.getElementById('notes-list').innerHTML = notes.map((note) => `<li>${displayText(note)}</li>`).join('');
 
       document.getElementById('guest-value-cards').innerHTML = orderedGuestValue.length
         ? orderedGuestValue.map((row) => `
           <article class="value-card">
-            <span class="value-eyebrow">${row.season_label}</span>
-            <h3>${row.season_label}: zusaetzliche Naechtigung</h3>
-            <p>${row.assumed_revenue_basis}</p>
+            <span class="value-eyebrow">${displayText(row.season_label)}</span>
+            <h3>${displayText(row.season_label)}: Saison-Szenario</h3>
+            <p>${displayText(row.assumed_revenue_basis)}</p>
             <div class="value-metrics">
               <div class="value-metric">
-                <span class="label">Erlosannahme</span>
+                <span class="label">Appartementpreis</span>
                 <span class="value">${fmtCurrency(row.assumed_revenue_eur_per_night)}</span>
               </div>
               <div class="value-metric">
-                <span class="label">Mehrstrom</span>
-                <span class="value">${fmt(row.electricity_additional_per_guest_night_kwh, 2)} kWh</span>
+                <span class="label">Geschätzte Appartement-Nächte</span>
+                <span class="value">${fmt(row.estimated_occupied_apartment_nights, 0)}</span>
               </div>
               <div class="value-metric">
-                <span class="label">Mehrwaerme</span>
-                <span class="value">${fmt(row.heat_additional_per_guest_night_kwh, 2)} kWh</span>
+                <span class="label">Ø belegte Appartements</span>
+                <span class="value">${fmt(row.average_occupied_apartments_per_guest_day, 2)} pro Gasttag</span>
               </div>
               <div class="value-metric">
-                <span class="label">Stromkosten je Naechtigung</span>
-                <span class="value">${fmtCurrency(row.electricity_cost_per_additional_guest_night_ex_vat_eur)} exkl.<br>${fmtCurrency(row.electricity_cost_per_additional_guest_night_inc_vat_eur)} inkl.</span>
+                <span class="label">Geschätzter Saisonerlös</span>
+                <span class="value">${fmtCurrency(row.estimated_revenue_total_eur, 0)}</span>
               </div>
               <div class="value-metric">
-                <span class="label">Grenznutzen vor Heiztarif</span>
-                <span class="value">${fmtCurrency(row.contribution_after_electricity_ex_vat_eur)} exkl.<br>${fmtCurrency(row.contribution_after_electricity_inc_vat_eur)} inkl.</span>
+                <span class="label">Stromkosten Gäste gesamt</span>
+                <span class="value">${fmtCurrency(row.electricity_cost_total_guest_attributed_ex_vat_eur)} exkl.<br>${fmtCurrency(row.electricity_cost_total_guest_attributed_inc_vat_eur)} inkl.</span>
               </div>
               <div class="value-metric">
-                <span class="label">Modellguete</span>
-                <span class="value">Strom R² ${fmt(row.electricity_model_r_squared, 2)}<br>FW R² ${fmt(row.heat_model_r_squared, 2)}</span>
+                <span class="label">Deckungsbeitrag vor Heiztarif</span>
+                <span class="value">${fmtCurrency(row.contribution_after_electricity_ex_vat_eur, 0)} exkl.<br>${fmtCurrency(row.contribution_after_electricity_inc_vat_eur, 0)} inkl.</span>
               </div>
             </div>
             <div class="formula">
+              <strong>Erlös</strong><br>
+              ${fmt(row.estimated_occupied_apartment_nights, 0)} Appartement-Nächte * ${fmtCurrency(row.assumed_revenue_eur_per_night)}<br><br>
               <strong>Heizkosten</strong><br>
-              ${fmt(row.heat_additional_per_guest_night_kwh, 2)} kWh * Fernwaermepreis je kWh<br><br>
+              ${fmt(row.heat_total_guest_attributed_kwh, 0)} kWh * Fernwärmepreis je kWh<br><br>
+              <strong>Mehrverbrauch je Gastnacht</strong><br>
+              Strom ${fmt(row.electricity_additional_per_guest_night_kwh, 2)} kWh, FW ${fmt(row.heat_additional_per_guest_night_kwh, 2)} kWh<br><br>
               <strong>Deckungsbeitrag exkl. USt</strong><br>
               ${prettyFormula(row.net_contribution_formula_ex_vat)}<br><br>
               <strong>Deckungsbeitrag inkl. USt</strong><br>
               ${prettyFormula(row.net_contribution_formula_inc_vat)}
             </div>
-            <p class="card-note">${row.scenario_note}</p>
+            <p class="card-note">${displayText(row.scenario_note)}</p>
           </article>
         `).join('')
-        : '<p>Keine saisonalen Wertschoepfungsdaten vorhanden.</p>';
+        : '<p>Keine saisonalen Wertschöpfungsdaten vorhanden.</p>';
 
       Highcharts.chart('chart-raw-daily-electricity-pv', {
         credits: { enabled: false },
@@ -830,8 +1215,9 @@
         yAxis: { title: { text: 'kWh pro Tag' } },
         tooltip: { shared: true, valueDecimals: 2 },
         series: [
-          { type: 'line', name: 'Strom', data: toSeries(rawDaily, 'electricity_kwh') },
-          { type: 'line', name: 'PV', data: toSeries(rawDaily, 'pv_kwh') }
+          { type: 'line', name: 'Netzstrom', data: toSeries(rawDaily, 'electricity_kwh') },
+          { type: 'line', name: 'PV-Erzeugung', data: toSeries(rawDaily, 'pv_kwh') },
+          { type: 'line', name: 'Einspeisung', data: toSeries(rawDaily, 'electricity_feed_in_kwh') }
         ]
       });
 
@@ -842,7 +1228,7 @@
         yAxis: { title: { text: 'kWh pro Tag' } },
         tooltip: { shared: true, valueDecimals: 1 },
         series: [
-          { type: 'line', name: 'Fernwaerme', data: toSeries(rawDaily, 'heat_kwh') }
+          { type: 'line', name: 'Fernwärme', data: toSeries(rawDaily, 'heat_kwh') }
         ]
       });
 
@@ -850,10 +1236,10 @@
         credits: { enabled: false },
         title: { text: null },
         xAxis: { type: 'datetime' },
-        yAxis: [{ title: { text: 'Naechtigungen' } }],
+        yAxis: [{ title: { text: 'Nächtigungen' } }],
         tooltip: { shared: true, valueDecimals: 0 },
         series: [
-          { type: 'column', name: 'Naechtigungen', data: toSeries(rawDaily, 'nights'), borderRadius: 2 }
+          { type: 'column', name: 'Nächtigungen', data: toSeries(rawDaily, 'nights'), borderRadius: 2 }
         ]
       });
 
@@ -862,18 +1248,18 @@
         title: { text: null },
         xAxis: { type: 'datetime' },
         yAxis: [
-          { title: { text: 'Fernwaerme kWh je Monat' } },
+          { title: { text: 'Fernwärme kWh je Monat' } },
           { title: { text: 'HDD18' }, opposite: true },
           { title: { text: 'Temperatur (C)' }, opposite: true, offset: 68 },
-          { title: { text: 'Naechtigungen' }, opposite: true, offset: 136 }
+          { title: { text: 'Nächtigungen' }, opposite: true, offset: 136 }
         ],
         tooltip: { shared: true, valueDecimals: 1 },
         plotOptions: { column: { borderRadius: 3 } },
         series: [
-          { type: 'column', name: 'Fernwaerme', data: toSeries(rawMonthly, 'heat_kwh', 'month_start_ms') },
+          { type: 'column', name: 'Fernwärme', data: toSeries(rawMonthly, 'heat_kwh', 'month_start_ms') },
           { type: 'line', name: 'HDD18', yAxis: 1, data: toSeries(rawMonthly, 'hdd18', 'month_start_ms') },
           { type: 'line', name: 'Tagesmitteltemperatur', yAxis: 2, data: toSeries(rawMonthly, 'temp_mean_c', 'month_start_ms') },
-          { type: 'line', name: 'Naechtigungen', yAxis: 3, data: toSeries(rawMonthly, 'nights', 'month_start_ms'), dashStyle: 'ShortDash' }
+          { type: 'line', name: 'Nächtigungen', yAxis: 3, data: toSeries(rawMonthly, 'nights', 'month_start_ms'), dashStyle: 'ShortDash' }
         ]
       });
 
@@ -884,15 +1270,16 @@
         yAxis: [
           { title: { text: 'kWh je Monat' } },
           { title: { text: 'Sonnenscheindauer (h)' }, opposite: true },
-          { title: { text: 'Naechtigungen' }, opposite: true, offset: 68 }
+          { title: { text: 'Nächtigungen' }, opposite: true, offset: 68 }
         ],
         tooltip: { shared: true, valueDecimals: 1 },
-        plotOptions: { column: { borderRadius: 3 } },
+        plotOptions: { column: { borderRadius: 3, stacking: 'normal' } },
         series: [
-          { type: 'column', name: 'Strom', data: toSeries(rawMonthly, 'electricity_kwh', 'month_start_ms') },
-          { type: 'column', name: 'PV', data: toSeries(rawMonthly, 'pv_kwh', 'month_start_ms') },
+          { type: 'column', name: 'Netzstrom', data: toSeries(rawMonthly, 'electricity_kwh', 'month_start_ms') },
+          { type: 'column', name: 'PV-Eigenverbrauch', data: toSeries(rawMonthly, 'electricity_self_consumption_kwh', 'month_start_ms') },
+          { type: 'line', name: 'Einspeisung', data: toSeries(rawMonthly, 'electricity_feed_in_kwh', 'month_start_ms') },
           { type: 'line', name: 'Sonnenscheindauer', yAxis: 1, data: toSeries(rawMonthly, 'sunshine_hours', 'month_start_ms') },
-          { type: 'line', name: 'Naechtigungen', yAxis: 2, data: toSeries(rawMonthly, 'nights', 'month_start_ms'), dashStyle: 'ShortDash' }
+          { type: 'line', name: 'Nächtigungen', yAxis: 2, data: toSeries(rawMonthly, 'nights', 'month_start_ms'), dashStyle: 'ShortDash' }
         ]
       });
 
@@ -900,42 +1287,52 @@
         credits: { enabled: false },
         title: { text: null },
         xAxis: { type: 'datetime' },
-        yAxis: [
-          { title: { text: 'kWh pro Tag' } },
-          {
-            title: { text: 'PV Coverage' },
-            opposite: true,
-            labels: { formatter: function () { return fmtPct(this.value / 100); } },
-            max: 100
-          }
-        ],
+        yAxis: { title: { text: 'kWh pro Tag' } },
         tooltip: { shared: true },
-        plotOptions: { area: { fillOpacity: 0.2 } },
+        plotOptions: { area: { fillOpacity: 0.2, stacking: 'normal' } },
         series: [
-          { type: 'area', name: 'Restlast nach PV', data: toSeries(analysisDaily, 'grid_need_after_pv_kwh') },
-          { type: 'area', name: 'PV Ueberschuss vs. Last', data: toSeries(analysisDaily, 'pv_surplus_vs_load_kwh') },
-          { type: 'line', name: 'Potenziell PV zu Waerme', data: toSeries(analysisDaily, 'potential_pv_to_heat_kwh') },
-          {
-            type: 'line',
-            name: 'Potenzielle PV-Abdeckung',
-            yAxis: 1,
-            data: analysisDaily.filter((row) => row.potential_pv_coverage_ratio !== null && row.potential_pv_coverage_ratio !== undefined).map((row) => [row.timestamp_ms, row.potential_pv_coverage_ratio * 100]),
-            tooltip: { valueSuffix: ' %', valueDecimals: 1 }
-          }
+          { type: 'area', name: 'PV-Eigenverbrauch', data: toSeries(analysisDaily, 'electricity_self_consumption_kwh') },
+          { type: 'area', name: 'Netzstrom', data: toSeries(analysisDaily, 'electricity_kwh') },
+          { type: 'line', name: 'Einspeisung', data: toSeries(analysisDaily, 'electricity_feed_in_kwh') }
         ]
       });
 
-      Highcharts.chart('chart-analysis-intensity', {
+      Highcharts.chart('chart-analysis-pv-usage', {
         credits: { enabled: false },
         title: { text: null },
         xAxis: { type: 'datetime' },
-        yAxis: { title: { text: 'kWh pro Naechtigung' } },
-        tooltip: { shared: true, valueDecimals: 2 },
+        yAxis: [{
+          title: { text: 'PV-Anteil in %' },
+          labels: {
+            formatter: function () {
+              return `${fmt(this.value, 0)} %`;
+            }
+          },
+          max: 100
+        }, {
+          title: { text: 'kWh pro Tag' },
+          opposite: true
+        }],
+        tooltip: { shared: true },
         series: [
-          { type: 'line', name: 'Strom / Naechtigung', data: toSeries(analysisDaily, 'electricity_kwh_per_night') },
-          { type: 'line', name: 'Fernwaerme / Naechtigung', data: toSeries(analysisDaily, 'heat_kwh_per_night') },
-          { type: 'line', name: 'Fernwaerme wetterbereinigt / Naechtigung', data: toSeries(analysisDaily, 'heat_weather_adjusted_per_night_kwh') },
-          { type: 'line', name: 'PV / Naechtigung', data: toSeries(analysisDaily, 'pv_kwh_per_night') }
+          {
+            type: 'line',
+            name: 'PV -> Eigenverbrauch',
+            data: analysisDaily.filter((row) => row.pv_self_consumption_ratio !== null && row.pv_self_consumption_ratio !== undefined).map((row) => [row.timestamp_ms, row.pv_self_consumption_ratio * 100]),
+            tooltip: { valueSuffix: ' %', valueDecimals: 1 }
+          },
+          {
+            type: 'line',
+            name: 'PV -> Einspeisung',
+            data: analysisDaily.filter((row) => row.pv_feed_in_ratio !== null && row.pv_feed_in_ratio !== undefined).map((row) => [row.timestamp_ms, row.pv_feed_in_ratio * 100]),
+            tooltip: { valueSuffix: ' %', valueDecimals: 1 }
+          },
+          {
+            type: 'line',
+            name: 'Potenziell PV zu Wärme',
+            yAxis: 1,
+            data: toSeries(analysisDaily, 'potential_pv_to_heat_kwh')
+          }
         ]
       });
 
@@ -946,19 +1343,18 @@
         yAxis: [{
           title: { text: 'kWh je Monat' }
         }, {
-          title: { text: 'Naechtigungen' },
+          title: { text: 'Nächtigungen' },
           opposite: true
         }],
         tooltip: {
           shared: true,
           formatter: guestSplitTooltip({
-            actualKey: 'electricity_kwh',
-            baselineKey: 'electricity_no_guest_baseline_seasonal_kwh',
-            guestKey: 'electricity_guest_impact_seasonal_kwh',
-            modeledKey: 'electricity_modeled_total_seasonal_kwh',
-            residualKey: 'electricity_model_residual_seasonal_kwh',
-            fallbackKey: 'electricity_guest_impact_fallback_days',
-            consumptionLabel: 'Strom'
+            actualKey: 'real_electricity_kwh',
+            baselineKey: 'real_electricity_no_guest_baseline_seasonal_kwh',
+            guestKey: 'real_electricity_guest_impact_seasonal_kwh',
+            modeledKey: 'real_electricity_modeled_total_seasonal_kwh',
+            fallbackKey: 'real_electricity_guest_impact_fallback_days',
+            consumptionLabel: 'Realer Stromverbrauch'
           })
         },
         plotOptions: {
@@ -975,39 +1371,39 @@
         series: [
           {
             type: 'area',
-            name: 'Modellierter Basisverbrauch / Eigennutzung',
-            data: toPointSeries(analysisMonthly, 'electricity_no_guest_baseline_seasonal_kwh', 'month_start_ms'),
+            name: 'Modellierte Referenz ohne Gäste',
+            data: toPointSeries(analysisMonthly, 'real_electricity_no_guest_baseline_seasonal_kwh', 'month_start_ms'),
             color: '#1f6d5b'
           },
           {
             type: 'area',
-            name: 'Modellierter Zusatz durch Gaeste',
-            data: toPointSeries(analysisMonthly, 'electricity_guest_impact_seasonal_kwh', 'month_start_ms'),
+            name: 'Modellierter Zusatz durch Gäste',
+            data: toPointSeries(analysisMonthly, 'real_electricity_guest_impact_seasonal_kwh', 'month_start_ms'),
             color: '#c4662d'
           },
           {
             type: 'line',
-            name: 'Strom gesamt gemessen',
-            data: toPointSeries(analysisMonthly, 'electricity_kwh', 'month_start_ms'),
+            name: 'Realer Strom gesamt',
+            data: toPointSeries(analysisMonthly, 'real_electricity_kwh', 'month_start_ms'),
             color: '#203127',
             lineWidth: 3,
             zIndex: 4
           },
           {
             type: 'line',
-            name: 'Residual Ist - Modellsumme',
-            data: toPointSeries(analysisMonthly, 'electricity_model_residual_seasonal_kwh', 'month_start_ms'),
-            color: '#8a4a96',
-            dashStyle: 'ShortDash',
+            name: 'Netzstrombezug',
+            data: toPointSeries(analysisMonthly, 'electricity_kwh', 'month_start_ms'),
+            color: '#3f6ab7',
+            dashStyle: 'ShortDot',
             lineWidth: 2,
             zIndex: 3
           },
           {
             type: 'line',
-            name: 'Naechtigungen',
+            name: 'Nächtigungen',
             yAxis: 1,
             data: toPointSeries(analysisMonthly, 'nights', 'month_start_ms'),
-            color: '#3f6ab7',
+            color: '#7d8691',
             dashStyle: 'ShortDot'
           }
         ]
@@ -1020,7 +1416,7 @@
         yAxis: [{
           title: { text: 'kWh je Monat' }
         }, {
-          title: { text: 'Naechtigungen' },
+          title: { text: 'Nächtigungen' },
           opposite: true
         }],
         tooltip: {
@@ -1030,9 +1426,8 @@
             baselineKey: 'heat_no_guest_baseline_seasonal_kwh',
             guestKey: 'heat_guest_impact_seasonal_kwh',
             modeledKey: 'heat_modeled_total_seasonal_kwh',
-            residualKey: 'heat_model_residual_seasonal_kwh',
             fallbackKey: 'heat_guest_impact_fallback_days',
-            consumptionLabel: 'Fernwaerme'
+            consumptionLabel: 'Fernwärme'
           })
         },
         plotOptions: {
@@ -1049,19 +1444,19 @@
         series: [
           {
             type: 'area',
-            name: 'Modellierter Basisverbrauch / Eigennutzung',
+            name: 'Modellierte Referenz ohne Gäste',
             data: toPointSeries(analysisMonthly, 'heat_no_guest_baseline_seasonal_kwh', 'month_start_ms'),
             color: '#d2a23f'
           },
           {
             type: 'area',
-            name: 'Modellierter Zusatz durch Gaeste',
+            name: 'Modellierter Zusatz durch Gäste',
             data: toPointSeries(analysisMonthly, 'heat_guest_impact_seasonal_kwh', 'month_start_ms'),
             color: '#bf3e34'
           },
           {
             type: 'line',
-            name: 'Fernwaerme gesamt gemessen',
+            name: 'Fernwärme gesamt gemessen',
             data: toPointSeries(analysisMonthly, 'heat_kwh', 'month_start_ms'),
             color: '#203127',
             lineWidth: 3,
@@ -1069,19 +1464,10 @@
           },
           {
             type: 'line',
-            name: 'Residual Ist - Modellsumme',
-            data: toPointSeries(analysisMonthly, 'heat_model_residual_seasonal_kwh', 'month_start_ms'),
-            color: '#8a4a96',
-            dashStyle: 'ShortDash',
-            lineWidth: 2,
-            zIndex: 3
-          },
-          {
-            type: 'line',
-            name: 'Naechtigungen',
+            name: 'Nächtigungen',
             yAxis: 1,
             data: toPointSeries(analysisMonthly, 'nights', 'month_start_ms'),
-            color: '#3f6ab7',
+            color: '#7d8691',
             dashStyle: 'ShortDot'
           }
         ]
@@ -1091,12 +1477,12 @@
         credits: { enabled: false },
         title: { text: null },
         xAxis: {
-          categories: orderedGuestImpact.map((row) => row.metric_label)
+          categories: orderedGuestImpact.map((row) => displayText(row.metric_label))
         },
         yAxis: [{
-          title: { text: 'kWh je zusaetzliche Naechtigung' }
+          title: { text: 'kWh je Gastnacht' }
         }, {
-          title: { text: '% gg. Basis ohne Gaeste' },
+          title: { text: '% gg. Basis ohne Gäste' },
           opposite: true,
           labels: {
             formatter: function () {
@@ -1109,11 +1495,11 @@
           formatter: function () {
             const row = this.points[0].point.custom;
             return [
-              `<b>${row.metric_label}</b>`,
-              `Mehrverbrauch je zusaetzliche Naechtigung: ${fmt(row.additional_per_guest_night_kwh, 2)} kWh`,
-              `Relativ zur Basis ohne Gaeste: ${fmtPct(row.additional_per_guest_night_pct_vs_baseline)}`,
-              `Rohdifferenz Gasttag vs. ohne Gaeste: ${fmt(row.raw_guest_day_delta_kwh, 2)} kWh (${fmtPct(row.raw_guest_day_delta_pct)})`,
-              `Modellguete R²: ${fmt(row.r_squared, 2)}`
+              `<b>${displayText(row.metric_label)}</b>`,
+              `Durchschnittlich gästeattribuiert je Gastnacht: ${fmt(row.additional_per_guest_night_kwh, 2)} kWh`,
+              `Relativ zur Referenz ohne Gäste: ${fmtPct(row.additional_per_guest_night_pct_vs_baseline)}`,
+              `Rohdifferenz Gasttag vs. ohne Gäste: ${fmt(row.raw_guest_day_delta_kwh, 2)} kWh (${fmtPct(row.raw_guest_day_delta_pct)})`,
+              `Modellgüte R²: ${fmt(row.r_squared, 2)}`
             ].join('<br>');
           }
         },
@@ -1137,7 +1523,7 @@
           }
         },
         series: [
-          { type: 'column', name: 'Mehrverbrauch je Naechtigung', data: toCategoryPoints(orderedGuestImpact, 'additional_per_guest_night_kwh') },
+          { type: 'column', name: 'Gästeattribuiert je Gastnacht', data: toCategoryPoints(orderedGuestImpact, 'additional_per_guest_night_kwh') },
           {
             type: 'line',
             name: 'Relativer Effekt',
@@ -1156,7 +1542,7 @@
         credits: { enabled: false },
         title: { text: null },
         xAxis: {
-          categories: orderedGuestImpact.map((row) => row.metric_label)
+          categories: orderedGuestImpact.map((row) => displayText(row.metric_label))
         },
         yAxis: [{
           title: { text: 'kWh in 2025' }
@@ -1174,10 +1560,10 @@
           formatter: function () {
             const row = this.points[0].point.custom;
             return [
-              `<b>${row.metric_label}</b>`,
-              `Geschaetzter Verbrauch durch Gaeste: ${fmt(row.total_guest_attributed_kwh, 0)} kWh`,
+              `<b>${displayText(row.metric_label)}</b>`,
+              `Geschätzter Verbrauch durch Gäste: ${fmt(row.total_guest_attributed_kwh, 0)} kWh`,
               `Anteil am Jahresverbrauch: ${fmtPct(row.total_guest_attributed_share)}`,
-              `Gesamt-Naechtigungen im Modell: ${fmt(row.total_guest_nights, 0)}`
+              `Gesamt-Nächtigungen im Modell: ${fmt(row.total_guest_nights, 0)}`
             ].join('<br>');
           }
         },
@@ -1201,7 +1587,7 @@
           }
         },
         series: [
-          { type: 'column', name: 'Durch Gaeste verursacht', data: toCategoryPoints(orderedGuestImpact, 'total_guest_attributed_kwh') },
+          { type: 'column', name: 'Durch Gäste verursacht', data: toCategoryPoints(orderedGuestImpact, 'total_guest_attributed_kwh') },
           {
             type: 'line',
             name: 'Anteil am Gesamtverbrauch',
@@ -1216,11 +1602,183 @@
         ]
       });
 
-      Highcharts.chart('chart-analysis-temp-scatter', {
+      Highcharts.chart('chart-analysis-guest-marginal-seasonal', {
         credits: { enabled: false },
         title: { text: null },
+        xAxis: {
+          categories: availableGuestImpactSeasonKeys.map((seasonKey) => seasonLabel(seasonKey))
+        },
+        yAxis: [{
+          title: { text: 'kWh je Gastnacht' }
+        }, {
+          title: { text: '% gg. Basis ohne Gäste' },
+          opposite: true,
+          labels: {
+            formatter: function () {
+              return `${fmt(this.value, 0)} %`;
+            }
+          }
+        }],
+        tooltip: {
+          shared: true,
+          formatter: function () {
+            const rows = uniqueMetricRows(this.points);
+            if (!rows.length) {
+              return false;
+            }
+
+            const lines = [`<b>${seasonLabel(rows[0].segment_key)}</b>`];
+            rows.forEach((row) => {
+              lines.push(`${displayText(row.metric_label)}: ${fmt(row.additional_per_guest_night_kwh, 2)} kWh je Gastnacht`);
+              lines.push(`Relativer Effekt: ${fmtPct(row.additional_per_guest_night_pct_vs_baseline)}`);
+              lines.push(`Gasttage: ${fmt(row.guest_days, 0)}, Gastnächte: ${fmt(row.total_guest_nights, 0)}, Modellquelle: ${guestImpactSeasonSourceLabel(row.segment_source)}`);
+            });
+
+            return lines.join('<br>');
+          }
+        },
+        plotOptions: {
+          column: {
+            borderRadius: 4,
+            dataLabels: {
+              enabled: true,
+              formatter: function () {
+                return `${fmt(this.y, 2)} kWh`;
+              }
+            }
+          },
+          line: {
+            marker: { enabled: true },
+            dataLabels: { enabled: false }
+          }
+        },
+        series: [
+          {
+            type: 'column',
+            name: 'Realer Strom',
+            data: guestImpactSeasonPoints('real_electricity', 'additional_per_guest_night_kwh'),
+            color: '#1f6d5b'
+          },
+          {
+            type: 'column',
+            name: 'Fernwärme',
+            data: guestImpactSeasonPoints('heat', 'additional_per_guest_night_kwh'),
+            color: '#d2a23f'
+          },
+          {
+            type: 'line',
+            name: 'Relativer Effekt Strom',
+            yAxis: 1,
+            data: guestImpactSeasonPoints('real_electricity', 'additional_per_guest_night_pct_vs_baseline').map((point) => ({
+              y: point.y !== null && point.y !== undefined ? point.y * 100 : null,
+              custom: point.custom
+            })),
+            color: '#3f6ab7'
+          },
+          {
+            type: 'line',
+            name: 'Relativer Effekt Fernwärme',
+            yAxis: 1,
+            data: guestImpactSeasonPoints('heat', 'additional_per_guest_night_pct_vs_baseline').map((point) => ({
+              y: point.y !== null && point.y !== undefined ? point.y * 100 : null,
+              custom: point.custom
+            })),
+            color: '#bf3e34'
+          }
+        ]
+      });
+
+      Highcharts.chart('chart-analysis-guest-total-seasonal', {
+        credits: { enabled: false },
+        title: { text: null },
+        xAxis: {
+          categories: availableGuestImpactSeasonKeys.map((seasonKey) => seasonLabel(seasonKey))
+        },
+        yAxis: [{
+          title: { text: 'kWh je Saison' }
+        }, {
+          title: { text: '% des Saisonverbrauchs' },
+          opposite: true,
+          labels: {
+            formatter: function () {
+              return `${fmt(this.value, 0)} %`;
+            }
+          }
+        }],
+        tooltip: {
+          shared: true,
+          formatter: function () {
+            const rows = uniqueMetricRows(this.points);
+            if (!rows.length) {
+              return false;
+            }
+
+            const lines = [`<b>${seasonLabel(rows[0].segment_key)}</b>`];
+            rows.forEach((row) => {
+              lines.push(`${displayText(row.metric_label)}: ${fmt(row.total_guest_attributed_kwh, 0)} kWh durch Gäste`);
+              lines.push(`Anteil am Saisonverbrauch: ${fmtPct(row.total_guest_attributed_share)}`);
+              lines.push(`Gasttage: ${fmt(row.guest_days, 0)}, Gastnächte: ${fmt(row.total_guest_nights, 0)}, Modellquelle: ${guestImpactSeasonSourceLabel(row.segment_source)}`);
+            });
+
+            return lines.join('<br>');
+          }
+        },
+        plotOptions: {
+          column: {
+            borderRadius: 4,
+            dataLabels: {
+              enabled: true,
+              formatter: function () {
+                return `${fmt(this.y, 0)} kWh`;
+              }
+            }
+          },
+          line: {
+            marker: { enabled: true },
+            dataLabels: { enabled: false }
+          }
+        },
+        series: [
+          {
+            type: 'column',
+            name: 'Realer Strom',
+            data: guestImpactSeasonPoints('real_electricity', 'total_guest_attributed_kwh'),
+            color: '#1f6d5b'
+          },
+          {
+            type: 'column',
+            name: 'Fernwärme',
+            data: guestImpactSeasonPoints('heat', 'total_guest_attributed_kwh'),
+            color: '#d2a23f'
+          },
+          {
+            type: 'line',
+            name: 'Anteil Strom',
+            yAxis: 1,
+            data: guestImpactSeasonPoints('real_electricity', 'total_guest_attributed_share').map((point) => ({
+              y: point.y !== null && point.y !== undefined ? point.y * 100 : null,
+              custom: point.custom
+            })),
+            color: '#3f6ab7'
+          },
+          {
+            type: 'line',
+            name: 'Anteil Fernwärme',
+            yAxis: 1,
+            data: guestImpactSeasonPoints('heat', 'total_guest_attributed_share').map((point) => ({
+              y: point.y !== null && point.y !== undefined ? point.y * 100 : null,
+              custom: point.custom
+            })),
+            color: '#bf3e34'
+          }
+        ]
+      });
+
+      Highcharts.chart('chart-analysis-temp-scatter', {
+        credits: { enabled: false },
+        title: { text: 'Fernwärme gegen Temperatur' },
         xAxis: { title: { text: 'Tagesmitteltemperatur (C)' } },
-        yAxis: { title: { text: 'Fernwaerme kWh pro Tag' } },
+        yAxis: { title: { text: 'Fernwärme kWh pro Tag' } },
         tooltip: {
           formatter: function () {
             const trendMeta = this.series.userOptions.custom;
@@ -1229,19 +1787,19 @@
             }
 
             const row = this.point.custom;
-            return `<b>${row.date}</b><br>Temp: ${fmt(row.temp_mean_c, 1)} C<br>Naechtigungen: ${fmt(row.nights, 0)}<br>Fernwaerme: ${fmt(this.y, 2)} kWh`;
+            return `<b>${row.date}</b><br>Temp: ${fmt(row.temp_mean_c, 1)} C<br>Nächtigungen: ${fmt(row.nights, 0)}<br>Fernwärme: ${fmt(this.y, 2)} kWh`;
           }
         },
         series: [
           {
             type: 'scatter',
-            name: 'Ohne Gaeste',
+            name: 'Ohne Gäste',
             data: heatScatterNoGuests,
             color: '#1f6d5b'
           },
           ...(heatTrendNoGuests ? [{
             type: 'line',
-            name: 'Linearer Trend ohne Gaeste',
+            name: 'Linearer Trend ohne Gäste',
             data: heatTrendNoGuests.data,
             color: '#1f6d5b',
             dashStyle: 'ShortDash',
@@ -1249,20 +1807,20 @@
             marker: { enabled: false },
             enableMouseTracking: true,
             custom: {
-              trendLabel: 'Linearer Trend ohne Gaeste',
+              trendLabel: 'Linearer Trend ohne Gäste',
               slope: heatTrendNoGuests.slope,
               intercept: heatTrendNoGuests.intercept
             }
           }] : []),
           {
             type: 'scatter',
-            name: 'Mit Gaesten',
+            name: 'Mit Gästen',
             data: heatScatterWithGuests,
             color: '#c4662d'
           },
           ...(heatTrendWithGuests ? [{
             type: 'line',
-            name: 'Linearer Trend mit Gaesten',
+            name: 'Linearer Trend mit Gästen',
             data: heatTrendWithGuests.data,
             color: '#c4662d',
             dashStyle: 'ShortDash',
@@ -1270,9 +1828,71 @@
             marker: { enabled: false },
             enableMouseTracking: true,
             custom: {
-              trendLabel: 'Linearer Trend mit Gaesten',
+              trendLabel: 'Linearer Trend mit Gästen',
               slope: heatTrendWithGuests.slope,
               intercept: heatTrendWithGuests.intercept
+            }
+          }] : [])
+        ]
+      });
+
+      Highcharts.chart('chart-analysis-electricity-temp-scatter', {
+        credits: { enabled: false },
+        title: { text: 'Realer Strom gegen Temperatur' },
+        xAxis: { title: { text: 'Tagesmitteltemperatur (C)' } },
+        yAxis: { title: { text: 'Realer Strom kWh pro Tag' } },
+        tooltip: {
+          formatter: function () {
+            const trendMeta = this.series.userOptions.custom;
+            if (trendMeta && trendMeta.trendLabel) {
+              return `<b>${trendMeta.trendLabel}</b><br>Steigung: ${fmt(trendMeta.slope, 2)} kWh je C<br>Achsenabschnitt: ${fmt(trendMeta.intercept, 1)} kWh`;
+            }
+
+            const row = this.point.custom;
+            return `<b>${row.date}</b><br>Temp: ${fmt(row.temp_mean_c, 1)} C<br>Nächtigungen: ${fmt(row.nights, 0)}<br>Realer Strom: ${fmt(this.y, 2)} kWh`;
+          }
+        },
+        series: [
+          {
+            type: 'scatter',
+            name: 'Ohne Gäste',
+            data: electricityScatterNoGuests,
+            color: '#1f6d5b'
+          },
+          ...(electricityTrendNoGuests ? [{
+            type: 'line',
+            name: 'Linearer Trend ohne Gäste',
+            data: electricityTrendNoGuests.data,
+            color: '#1f6d5b',
+            dashStyle: 'ShortDash',
+            lineWidth: 2.5,
+            marker: { enabled: false },
+            enableMouseTracking: true,
+            custom: {
+              trendLabel: 'Linearer Trend ohne Gäste',
+              slope: electricityTrendNoGuests.slope,
+              intercept: electricityTrendNoGuests.intercept
+            }
+          }] : []),
+          {
+            type: 'scatter',
+            name: 'Mit Gästen',
+            data: electricityScatterWithGuests,
+            color: '#c4662d'
+          },
+          ...(electricityTrendWithGuests ? [{
+            type: 'line',
+            name: 'Linearer Trend mit Gästen',
+            data: electricityTrendWithGuests.data,
+            color: '#c4662d',
+            dashStyle: 'ShortDash',
+            lineWidth: 2.5,
+            marker: { enabled: false },
+            enableMouseTracking: true,
+            custom: {
+              trendLabel: 'Linearer Trend mit Gästen',
+              slope: electricityTrendWithGuests.slope,
+              intercept: electricityTrendWithGuests.intercept
             }
           }] : [])
         ]
@@ -1293,10 +1913,11 @@
         tooltip: { shared: true, valueDecimals: 1 },
         plotOptions: { column: { borderRadius: 3 } },
         series: [
-          { type: 'column', name: 'Fernwaerme', data: toCategorySeries(analysisSeasonal, 'heat_kwh') },
-          { type: 'column', name: 'Strom', data: toCategorySeries(analysisSeasonal, 'electricity_kwh') },
+          { type: 'column', name: 'Fernwärme', data: toCategorySeries(analysisSeasonal, 'heat_kwh') },
+          { type: 'column', name: 'Realer Strom', data: toCategorySeries(analysisSeasonal, 'real_electricity_kwh') },
           { type: 'column', name: 'PV', data: toCategorySeries(analysisSeasonal, 'pv_kwh') },
-          { type: 'column', name: 'PV zu Waerme', data: toCategorySeries(analysisSeasonal, 'potential_pv_to_heat_kwh') },
+          { type: 'column', name: 'Einspeisung', data: toCategorySeries(analysisSeasonal, 'electricity_feed_in_kwh') },
+          { type: 'column', name: 'PV zu Wärme', data: toCategorySeries(analysisSeasonal, 'potential_pv_to_heat_kwh') },
           { type: 'line', name: 'Mitteltemperatur', yAxis: 1, data: toCategorySeries(analysisSeasonal, 'temp_mean_c') },
           { type: 'line', name: 'HDD18', yAxis: 1, data: toCategorySeries(analysisSeasonal, 'hdd18') }
         ]
@@ -1312,15 +1933,15 @@
         yAxis: [{
           title: { text: 'kWh pro Tag' }
         }, {
-          title: { text: 'Ø Naechtigungen' },
+          title: { text: 'Ø Nächtigungen' },
           opposite: true
         }],
         tooltip: { shared: true, valueDecimals: 2 },
         plotOptions: { series: { borderRadius: 3 } },
         series: [
-          { type: 'bar', name: 'Fernwaerme', data: toCategorySeries(orderedEventSummary, 'avg_heat_kwh') },
-          { type: 'bar', name: 'Strom', data: toCategorySeries(orderedEventSummary, 'avg_electricity_kwh') },
-          { type: 'line', name: 'Ø Naechtigungen', yAxis: 1, data: toCategorySeries(orderedEventSummary, 'avg_nights') }
+          { type: 'bar', name: 'Fernwärme', data: toCategorySeries(orderedEventSummary, 'avg_heat_kwh') },
+          { type: 'bar', name: 'Realer Strom', data: toCategorySeries(orderedEventSummary, 'avg_real_electricity_kwh') },
+          { type: 'line', name: 'Ø Nächtigungen', yAxis: 1, data: toCategorySeries(orderedEventSummary, 'avg_nights') }
         ]
       });
 
@@ -1344,7 +1965,7 @@
         series: [
           { type: 'bar', name: 'FW wetterbereinigt', data: toCategorySeries(orderedEventSummary, 'avg_heat_weather_residual_kwh') },
           { type: 'bar', name: 'FW Delta Vortag', data: toCategorySeries(orderedEventSummary, 'avg_heat_delta_prev_day_kwh') },
-          { type: 'bar', name: 'Strom Delta Vortag', data: toCategorySeries(orderedEventSummary, 'avg_electricity_delta_prev_day_kwh') }
+          { type: 'bar', name: 'Realer Strom Delta Vortag', data: toCategorySeries(orderedEventSummary, 'avg_real_electricity_delta_prev_day_kwh') }
         ]
       });
     })();

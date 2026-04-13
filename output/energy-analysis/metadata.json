@@ -1,8 +1,9 @@
 {
-  "generated_at": "2026-04-12T22:07:22+0200",
+  "generated_at": "2026-04-13T14:36:24+0200",
   "timezone": "Europe/Vienna",
   "source_files": {
     "strom": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/strom/20260412-Lastprofil-AT007000096220000010190002540891A-20250101-20251231-QH.csv",
+    "strom_einspeisung": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/strom-einspeisung/20260412-Lastprofil-AT0070000962210000000000000568978-20250101-20251231-QH.csv",
     "fernwaerme": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/fernwaerme/cns_device_export__20260410175322.csv",
     "fronius": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/fronius",
     "meldewesen": "C:/Users/hueberl/iCloudDrive/Dokumente/Gästehaus Rader/EnergieAnalyse/data/meldewesen",
@@ -17,6 +18,14 @@
       "ende": "31.12.2025",
       "energierichtung": "Verbrauch gemessen"
     },
+    "strom_einspeisung": {
+      "kundennummer": "817866",
+      "kundenname": "Hueber Astrid",
+      "zp_nummer": "AT0070000962210000000000000568978",
+      "beginn": "01.01.2025",
+      "ende": "31.12.2025",
+      "energierichtung": "Erzeugung gemessen"
+    },
     "wetter": {
       "station_id": "19821",
       "hdd_basis_c": 18
@@ -27,6 +36,7 @@
     "coverage_end": "2025-12-31",
     "row_counts": {
       "strom_quarter_hour": 35040,
+      "strom_einspeisung_quarter_hour": 35040,
       "raw_daily": 365,
       "analysis_daily": 365,
       "raw_monthly": 12,
@@ -36,10 +46,13 @@
       "analysis_guest_impact": 2,
       "analysis_guest_impact_seasonal": 6,
       "analysis_guest_value": 2,
+      "analysis_model_comparison": 10,
       "weather_daily": 365
     },
     "missing_days": {
       "electricity": [],
+      "strom_einspeisung": [],
+      "real_electricity": ["2025-11-21", "2025-11-22", "2025-11-24", "2025-12-25"],
       "fernwaerme": [],
       "pv": ["2025-11-21", "2025-11-22", "2025-11-24", "2025-12-25"],
       "occupancy": [],
@@ -48,41 +61,56 @@
     "weather_flags": {
       "precipitation_negative_days": 186,
       "snow_depth_missing_days": 365
+    },
+    "energy_flags": {
+      "feed_in_exceeds_pv_days": 1
     }
   },
   "summary": {
     "total_electricity_kwh": 6512.134,
+    "total_grid_electricity_kwh": 6512.134,
+    "total_electricity_feed_in_kwh": 1626.275,
+    "total_electricity_self_consumption_kwh": 2712.657,
+    "total_real_electricity_kwh": 9109.057,
     "total_heat_kwh": 72352,
     "total_heat_volume_m3": 2022.11,
     "total_pv_kwh_known_days": 4335.76,
     "pv_days_available": 361,
+    "feed_in_days_available": 365,
+    "real_electricity_days_available": 361,
+    "electricity_autarky_ratio": 0.2978,
+    "pv_self_consumption_ratio": 0.6256,
     "total_nights": 624,
+    "total_estimated_occupied_apartment_nights": 341,
     "total_hdd18": 3222.8,
     "winter_heat_kwh": 52694,
     "winter_heat_share": 0.7283,
-    "total_potential_pv_to_heat_kwh": 933.237,
-    "potential_pv_to_heat_share": 0.0129,
+    "total_potential_pv_to_heat_kwh": 1558.426,
+    "potential_pv_to_heat_share": 0.0215,
     "guest_days": 147,
     "occupancy_drop_days": 21,
-    "electricity_additional_per_guest_night_kwh": 1.7985,
-    "electricity_additional_per_guest_night_pct": 0.1371,
-    "electricity_guest_attributed_kwh": 887.4781,
-    "electricity_guest_attributed_share": 0.1363,
-    "electricity_model_residual_kwh": 2.8635e-12,
-    "heat_additional_per_guest_night_kwh": 4.4747,
-    "heat_additional_per_guest_night_pct": 0.0298,
-    "heat_guest_attributed_kwh": 3100.7982,
-    "heat_guest_attributed_share": 0.0429,
-    "heat_model_residual_kwh": -410.5204,
+    "real_electricity_additional_per_guest_night_kwh": 2.1422,
+    "real_electricity_additional_per_guest_night_pct": 0.1056,
+    "real_electricity_guest_attributed_kwh": 1504.2485,
+    "real_electricity_guest_attributed_share": 0.1651,
+    "real_electricity_model_residual_kwh": -2.8711,
+    "heat_additional_per_guest_night_kwh": 5.4323,
+    "heat_additional_per_guest_night_pct": 0.0369,
+    "heat_guest_attributed_kwh": 3905.7268,
+    "heat_guest_attributed_share": 0.054,
+    "heat_model_residual_kwh": -1059.6464,
     "electricity_replacement_intervals": 36,
     "electricity_replacement_share": 0.001,
     "precipitation_negative_days": 186,
-    "correlation_nights_vs_electricity": 0.3461,
+    "feed_in_exceeds_pv_days": 1,
+    "correlation_nights_vs_grid_electricity": 0.3461,
+    "correlation_nights_vs_real_electricity": 0.5239,
     "correlation_nights_vs_heat": -0.1316,
     "correlation_heat_vs_hdd18": 0.9721,
     "correlation_heat_vs_temp_mean": -0.9605,
     "correlation_heat_vs_nights_winter": 0.4317,
-    "correlation_electricity_vs_pv": -0.6304,
+    "correlation_grid_electricity_vs_pv": -0.6304,
+    "correlation_real_electricity_vs_pv": -0.2919,
     "max_abs_monthly_heat_delta_kwh": 1
   },
   "models": {
@@ -93,26 +121,196 @@
       "r_squared": 0.9291
     },
     "guest_impact": {
-      "electricity": {
-        "rows": 365,
-        "r_squared": 0.5936,
-        "nights_coefficient_kwh": 1.7985,
-        "hdd18_coefficient_kwh": 0.8609
+      "real_electricity": {
+        "rows": 361,
+        "r_squared": 0.5389,
+        "adjusted_r_squared": 0.527,
+        "baseline_definition": "modellierte Referenz ohne Gaeste",
+        "formula": "real_electricity_kwh ~ has_guests_flag + log1p_nights + occupied_apartments_estimated +     arrivals + temp_mean_c + sunshine_hours + is_weekend_flag +     factor(season_cluster)",
+        "nights_coefficient_kwh": null,
+        "log1p_nights_coefficient_kwh": 4.9284,
+        "nights_sq_coefficient_kwh": null,
+        "has_guests_flag_coefficient_kwh": -3.0695,
+        "occupied_apartments_estimated_coefficient_kwh": 1.8268,
+        "arrivals_coefficient_kwh": 0.0338,
+        "hdd18_coefficient_kwh": null,
+        "hdd18_sq_coefficient_kwh": null,
+        "temp_mean_c_coefficient_kwh": -0.4705,
+        "sunshine_hours_coefficient_kwh": -0.1726,
+        "is_weekend_flag_coefficient_kwh": -1.7819,
+        "guest_days": 147,
+        "average_guest_nights_per_guest_day": 4.2449,
+        "additional_per_guest_night_kwh": 2.1422,
+        "negative_guest_impact_days": 0
       },
       "heat": {
         "rows": 365,
-        "r_squared": 0.9497,
-        "nights_coefficient_kwh": 4.4747,
-        "hdd18_coefficient_kwh": 20.9706
-      }
+        "r_squared": 0.9589,
+        "adjusted_r_squared": 0.9578,
+        "baseline_definition": "modellierte Referenz ohne Gaeste",
+        "formula": "heat_kwh ~ hdd18 + I(hdd18^2) + has_guests_flag + log1p_nights +     occupied_apartments_estimated + arrivals + is_weekend_flag +     factor(season_cluster)",
+        "nights_coefficient_kwh": null,
+        "log1p_nights_coefficient_kwh": 28.4292,
+        "nights_sq_coefficient_kwh": null,
+        "has_guests_flag_coefficient_kwh": -23.5776,
+        "occupied_apartments_estimated_coefficient_kwh": 0.2013,
+        "arrivals_coefficient_kwh": 1.2032,
+        "hdd18_coefficient_kwh": 14.5062,
+        "hdd18_sq_coefficient_kwh": 0.1168,
+        "temp_mean_c_coefficient_kwh": null,
+        "sunshine_hours_coefficient_kwh": null,
+        "is_weekend_flag_coefficient_kwh": 0.506,
+        "guest_days": 147,
+        "average_guest_nights_per_guest_day": 4.2449,
+        "additional_per_guest_night_kwh": 5.4323,
+        "negative_guest_impact_days": 0
+      },
+      "baseline_definition": "modellierte Referenz ohne Gaeste"
     },
     "guest_impact_segmented": {
       "segment_col": "season_cluster",
       "segments": ["winter", "transition", "summer"],
       "fallback_days": {
-        "electricity": 0,
-        "heat": 122
+        "real_electricity": 214,
+        "heat": 214
+      },
+      "fallback_segments": {
+        "real_electricity": ["transition", "summer"],
+        "heat": ["transition", "summer"]
       }
+    },
+    "validation_model_comparison": {
+      "required_model_ids": ["model1_hdd18", "model2_hdd18_has_guests_flag", "model3_hdd18_has_guests_flag_nights"],
+      "real_electricity": [
+        {
+          "metric_key": "real_electricity",
+          "metric_label": "Realer Stromverbrauch",
+          "model_id": "model1_hdd18",
+          "model_label": "Modell 1: Verbrauch ~ hdd18",
+          "formula": "real_electricity_kwh ~ hdd18",
+          "model_rows": 361,
+          "r_squared": 0.1564,
+          "adjusted_r_squared": 0.1541,
+          "aic": 2435.1571,
+          "hdd18_coefficient_kwh": 0.4373,
+          "has_guests_flag_coefficient_kwh": null,
+          "nights_coefficient_kwh": null,
+          "log1p_nights_coefficient_kwh": null,
+          "nights_sq_coefficient_kwh": null,
+          "occupied_apartments_estimated_coefficient_kwh": null,
+          "arrivals_coefficient_kwh": null,
+          "temp_mean_c_coefficient_kwh": null,
+          "sunshine_hours_coefficient_kwh": null,
+          "is_weekend_flag_coefficient_kwh": null
+        },
+        {
+          "metric_key": "real_electricity",
+          "metric_label": "Realer Stromverbrauch",
+          "model_id": "model2_hdd18_has_guests_flag",
+          "model_label": "Modell 2: Verbrauch ~ hdd18 + has_guests_flag",
+          "formula": "real_electricity_kwh ~ hdd18 + has_guests_flag",
+          "model_rows": 361,
+          "r_squared": 0.4589,
+          "adjusted_r_squared": 0.4559,
+          "aic": 2276.8586,
+          "hdd18_coefficient_kwh": 0.5716,
+          "has_guests_flag_coefficient_kwh": 8.7339,
+          "nights_coefficient_kwh": null,
+          "log1p_nights_coefficient_kwh": null,
+          "nights_sq_coefficient_kwh": null,
+          "occupied_apartments_estimated_coefficient_kwh": null,
+          "arrivals_coefficient_kwh": null,
+          "temp_mean_c_coefficient_kwh": null,
+          "sunshine_hours_coefficient_kwh": null,
+          "is_weekend_flag_coefficient_kwh": null
+        },
+        {
+          "metric_key": "real_electricity",
+          "metric_label": "Realer Stromverbrauch",
+          "model_id": "model3_hdd18_has_guests_flag_nights",
+          "model_label": "Modell 3: Verbrauch ~ hdd18 + has_guests_flag + nights",
+          "formula": "real_electricity_kwh ~ hdd18 + has_guests_flag + nights",
+          "model_rows": 361,
+          "r_squared": 0.5318,
+          "adjusted_r_squared": 0.5278,
+          "aic": 2226.6236,
+          "hdd18_coefficient_kwh": 0.5725,
+          "has_guests_flag_coefficient_kwh": 0.2394,
+          "nights_coefficient_kwh": 2.0018,
+          "log1p_nights_coefficient_kwh": null,
+          "nights_sq_coefficient_kwh": null,
+          "occupied_apartments_estimated_coefficient_kwh": null,
+          "arrivals_coefficient_kwh": null,
+          "temp_mean_c_coefficient_kwh": null,
+          "sunshine_hours_coefficient_kwh": null,
+          "is_weekend_flag_coefficient_kwh": null
+        }
+      ],
+      "heat": [
+        {
+          "metric_key": "heat",
+          "metric_label": "Fernwaerme",
+          "model_id": "model1_hdd18",
+          "model_label": "Modell 1: Verbrauch ~ hdd18",
+          "formula": "heat_kwh ~ hdd18",
+          "model_rows": 365,
+          "r_squared": 0.945,
+          "adjusted_r_squared": 0.9448,
+          "aic": 3630.4409,
+          "hdd18_coefficient_kwh": 20.6653,
+          "has_guests_flag_coefficient_kwh": null,
+          "nights_coefficient_kwh": null,
+          "log1p_nights_coefficient_kwh": null,
+          "nights_sq_coefficient_kwh": null,
+          "occupied_apartments_estimated_coefficient_kwh": null,
+          "arrivals_coefficient_kwh": null,
+          "temp_mean_c_coefficient_kwh": null,
+          "sunshine_hours_coefficient_kwh": null,
+          "is_weekend_flag_coefficient_kwh": null
+        },
+        {
+          "metric_key": "heat",
+          "metric_label": "Fernwaerme",
+          "model_id": "model2_hdd18_has_guests_flag",
+          "model_label": "Modell 2: Verbrauch ~ hdd18 + has_guests_flag",
+          "formula": "heat_kwh ~ hdd18 + has_guests_flag",
+          "model_rows": 365,
+          "r_squared": 0.9493,
+          "adjusted_r_squared": 0.949,
+          "aic": 3602.618,
+          "hdd18_coefficient_kwh": 20.9901,
+          "has_guests_flag_coefficient_kwh": 20.3323,
+          "nights_coefficient_kwh": null,
+          "log1p_nights_coefficient_kwh": null,
+          "nights_sq_coefficient_kwh": null,
+          "occupied_apartments_estimated_coefficient_kwh": null,
+          "arrivals_coefficient_kwh": null,
+          "temp_mean_c_coefficient_kwh": null,
+          "sunshine_hours_coefficient_kwh": null,
+          "is_weekend_flag_coefficient_kwh": null
+        },
+        {
+          "metric_key": "heat",
+          "metric_label": "Fernwaerme",
+          "model_id": "model3_hdd18_has_guests_flag_nights",
+          "model_label": "Modell 3: Verbrauch ~ hdd18 + has_guests_flag + nights",
+          "formula": "heat_kwh ~ hdd18 + has_guests_flag + nights",
+          "model_rows": 365,
+          "r_squared": 0.9498,
+          "adjusted_r_squared": 0.9494,
+          "aic": 3601.0146,
+          "hdd18_coefficient_kwh": 20.9915,
+          "has_guests_flag_coefficient_kwh": 6.6321,
+          "nights_coefficient_kwh": 3.2285,
+          "log1p_nights_coefficient_kwh": null,
+          "nights_sq_coefficient_kwh": null,
+          "occupied_apartments_estimated_coefficient_kwh": null,
+          "arrivals_coefficient_kwh": null,
+          "temp_mean_c_coefficient_kwh": null,
+          "sunshine_hours_coefficient_kwh": null,
+          "is_weekend_flag_coefficient_kwh": null
+        }
+      ]
     }
   },
   "assumptions": {
@@ -126,9 +324,13 @@
     },
     "economic_interpretation": {
       "occupancy_model_unit": "guest_nights",
-      "revenue_assumption_unit": "apartment_nights",
-      "note": "Guest value scenarios are only an approximation until the mapping between guest nights and sold apartment nights is clarified."
+      "revenue_assumption_unit": "estimated_occupied_apartment_nights",
+      "note": "Revenue scenarios estimate sold apartment nights as sum(ceiling(guest_nights / 2)) by day and season."
+    },
+    "guest_impact_baseline": {
+      "label": "modellierte Referenz ohne Gaeste",
+      "note": "The no-guest baseline is a modeled counterfactual with guest-related inputs set to zero. It is not a physical idle-state measurement."
     }
   },
-  "notes": ["Potential PV coverage and PV-to-heat metrics are calculated on day and month level only. They are not true self-consumption or feed-in metrics.", "Fronius data are missing for 2025-11-21, 2025-11-22, 2025-11-24 and 2025-12-25. Missing values stay NA and are not imputed.", "Fernwaerme export includes a closing meter row for 2026-01-01. This row is excluded from the 2025 day-level dataset.", "Strom timestamps are parsed in Europe/Vienna and include DST transitions with 92 and 100 quarter-hour intervals on switch days.", "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.", "Guest impact uses daily nights as occupancy measure. Strom and Fernwaerme are modeled against nights; Fernwaerme is additionally controlled by HDD18.", "Seasonal guest split exposes modeled basis, modeled guest impact and a separate residual line defined as measured consumption minus modeled total.", "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and monthly aggregation to reduce distortion from mixed summer/winter behavior.", "Transition-period Fernwaerme falls back to the all-days model when the seasonal coefficient would imply a negative guest impact.", "Seasonal guest value scenarios use apartment-night prices of 75 EUR in summer and 85 EUR in winter.", "A heat tariff is not yet available in the repository. Additional heating cost per guest night is therefore shown as kWh and as a price formula, not as a fixed EUR amount.", "Negative precipitation values are treated as 0 mm and flagged via precipitation_negative_flag.", "Blank snow depth values stay NA and are flagged via snow_depth_missing_flag."]
+  "notes": ["Fronius data are missing for 2025-11-21, 2025-11-22, 2025-11-24 and 2025-12-25. Missing values stay NA and are not imputed.", "Fernwaerme export includes a closing meter row for 2026-01-01. This row is excluded from the 2025 day-level dataset.", "Strom timestamps are parsed in Europe/Vienna and include DST transitions with 92 and 100 quarter-hour intervals on switch days.", "KELAG feed-in data are aggregated on the same daily basis as grid consumption. Real electricity is defined as grid electricity plus PV self-consumption.", "1 days have feed-in above recorded PV day totals. These days are flagged via feed_in_exceeds_pv_flag and self-consumption is clamped to the valid range.", "Weather data are integrated on daily level from Geosphere station 19821. HDD uses a base temperature of 18C.", "Potential PV-to-heat is calculated as the theoretical overlap between measured grid feed-in and daily Fernwaerme demand.", "Guest impact baseline is documented as 'modellierte Referenz ohne Gaeste'. It is a model-based reference without guests, not a physical idle state.", "Guest impact models use has_guests_flag, log1p(guest_nights), occupied_apartments_estimated, arrivals, calendar effects and weather controls; Fernwaerme additionally uses HDD18 and HDD18^2.", "Validation output analysis_model_comparison.csv compares Verbrauch ~ hdd18, + has_guests_flag and + nights against extended operating models.", "Guest value estimates convert guest nights to occupied apartment nights via ceil(guest_nights / 2) on each day.", "Line charts for baseline vs. guest-driven consumption use season-segmented daily models and monthly aggregation to reduce distortion from mixed summer/winter behavior.", "Segment fallback remains visible in analysis_guest_impact_seasonal.csv and the dashboard. Fallback segments for Fernwaerme: transition, summer .", "Seasonal guest value scenarios use apartment-night prices of 75 EUR in summer and 85 EUR in winter.", "A heat tariff is not yet available in the repository. Additional heating cost per guest night is therefore shown as kWh and as a price formula, not as a fixed EUR amount.", "Negative precipitation values are treated as 0 mm and flagged via precipitation_negative_flag.", "Blank snow depth values stay NA and are flagged via snow_depth_missing_flag."]
 }

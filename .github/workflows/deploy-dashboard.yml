@@ -6,8 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/deploy-dashboard.yml
-      - output/energy-analysis/dashboard.html
-      - output/energy-analysis/dashboard_data.js
+      - output/energy-analysis/**
   workflow_dispatch:
 
 permissions:
@@ -39,6 +38,8 @@ jobs:
           mkdir -p public
           cp output/energy-analysis/dashboard.html public/index.html
           cp output/energy-analysis/dashboard_data.js public/dashboard_data.js
+          cp output/energy-analysis/*.csv public/
+          cp output/energy-analysis/*.json public/
           touch public/.nojekyll
 
       - name: Upload Pages artifact
