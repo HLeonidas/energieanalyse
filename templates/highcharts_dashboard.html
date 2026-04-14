@@ -362,15 +362,28 @@
 
     .value-card {
       min-width: 0;
-      padding: 18px;
-      border-radius: 18px;
+      border-radius: 24px;
       border: 1px solid rgba(32, 49, 39, 0.08);
-      background: rgba(255, 255, 255, 0.66);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 244, 236, 0.94) 100%);
+      box-shadow: 0 16px 34px rgba(32, 49, 39, 0.06);
+      overflow: hidden;
+    }
+
+    .value-card-inner {
+      padding: 20px;
+    }
+
+    .value-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .value-eyebrow {
-      display: block;
-      margin-bottom: 8px;
+      display: inline-block;
+      margin: 0;
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -378,32 +391,143 @@
       font-weight: 700;
     }
 
-    .value-card h3 {
+    .value-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(31, 109, 91, 0.08);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .value-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-top: 14px;
+    }
+
+    .value-hero-copy h3 {
       margin: 0 0 8px;
       font-size: clamp(20px, 3vw, 24px);
       letter-spacing: -0.03em;
     }
 
-    .value-card p {
+    .value-hero-copy p {
       margin: 0;
+      max-width: 44ch;
+      color: var(--muted);
+      line-height: 1.5;
     }
 
-    .value-metrics {
+    .value-hero-stat {
+      min-width: min(280px, 100%);
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #1f6d5b 0%, #2b7e6a 100%);
+      color: #fffaf3;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .value-card--summer .value-hero-stat {
+      background: linear-gradient(135deg, #c4662d 0%, #d39a3c 100%);
+    }
+
+    .value-card--summer .value-chip {
+      background: rgba(196, 102, 45, 0.1);
+      color: #a25427;
+    }
+
+    .value-hero-stat .label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255, 250, 243, 0.76);
+    }
+
+    .value-hero-stat .value {
+      display: block;
+      margin-top: 8px;
+      font-size: clamp(28px, 4vw, 34px);
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      overflow-wrap: anywhere;
+    }
+
+    .value-ledger {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
-      margin-top: 16px;
+      margin-top: 18px;
     }
 
-    .value-metric {
+    .value-ledger-item {
       min-width: 0;
-      padding: 12px;
-      border-radius: 14px;
+      padding: 14px;
+      border-radius: 16px;
       border: 1px solid rgba(32, 49, 39, 0.08);
-      background: rgba(255, 250, 243, 0.94);
+      background: rgba(255, 250, 243, 0.82);
     }
 
-    .value-metric .label {
+    .value-ledger-item.positive {
+      background: rgba(31, 109, 91, 0.08);
+      border-color: rgba(31, 109, 91, 0.16);
+    }
+
+    .value-ledger-item.negative {
+      background: rgba(196, 102, 45, 0.08);
+      border-color: rgba(196, 102, 45, 0.16);
+    }
+
+    .value-ledger-item.neutral {
+      background: rgba(32, 49, 39, 0.05);
+    }
+
+    .value-ledger-item .label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .value-ledger-item .value {
+      display: block;
+      font-size: clamp(20px, 2.4vw, 24px);
+      line-height: 1.15;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .value-ledger-item .meta {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .value-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .value-stat {
+      min-width: 0;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .value-stat .label {
       display: block;
       margin-bottom: 6px;
       font-size: 11px;
@@ -412,33 +536,187 @@
       color: var(--muted);
     }
 
-    .value-metric .value {
+    .value-stat .value {
       display: block;
-      font-size: 18px;
-      line-height: 1.3;
+      font-size: 16px;
+      line-height: 1.4;
       font-weight: 600;
       overflow-wrap: anywhere;
     }
 
-    .formula {
+    .value-note {
       margin-top: 16px;
-      padding: 14px;
-      border-radius: 14px;
-      background: rgba(31, 109, 91, 0.08);
-      border: 1px solid rgba(31, 109, 91, 0.12);
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 12px;
-      line-height: 1.55;
-      color: var(--ink);
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-
-    .card-note {
-      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
       font-size: 13px;
       color: var(--muted);
       line-height: 1.55;
+    }
+
+    .value-table-block {
+      min-width: 0;
+    }
+
+    .value-category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .value-category {
+      min-width: 0;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(32, 49, 39, 0.08);
+      background: rgba(255, 250, 243, 0.74);
+    }
+
+    .value-category h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .value-category-kicker {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .value-category-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .value-category-item {
+      padding-top: 10px;
+      border-top: 1px solid rgba(32, 49, 39, 0.08);
+    }
+
+    .value-category-item:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .value-category-label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .value-category-value {
+      display: block;
+      margin-top: 6px;
+      font-size: 24px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+
+    .value-category-meta {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .value-category-note {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(32, 49, 39, 0.08);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .value-table-wrap {
+      margin-top: 0;
+      border-radius: 18px;
+      border: 1px solid rgba(32, 49, 39, 0.08);
+      background: rgba(255, 250, 243, 0.84);
+      overflow: auto;
+    }
+
+    .value-table {
+      width: 100%;
+      min-width: 720px;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    .value-table th,
+    .value-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(32, 49, 39, 0.08);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .value-table thead th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      background: rgba(32, 49, 39, 0.04);
+    }
+
+    .value-table thead th:first-child,
+    .value-table tbody th {
+      width: 24%;
+    }
+
+    .value-table thead th:not(:first-child),
+    .value-table tbody td {
+      width: 19%;
+    }
+
+    .value-table tbody tr:last-child th,
+    .value-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .value-table tbody th {
+      width: 32%;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .value-table td strong {
+      display: block;
+      font-size: 19px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .value-subline {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .value-section-row th {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(32, 49, 39, 0.08);
+      background: rgba(31, 109, 91, 0.05);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      font-weight: 700;
     }
 
     .export-item-file,
@@ -459,6 +737,15 @@
       .grid {
         grid-template-columns: 1fr;
       }
+
+      .value-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .value-category-grid {
+        grid-template-columns: 1fr;
+      }
+
     }
 
     @media (max-width: 720px) {
@@ -482,10 +769,17 @@
       }
 
       .panel,
-      .kpi,
-      .value-card {
+      .kpi {
         padding: 16px;
         border-radius: 18px;
+      }
+
+      .value-card {
+        border-radius: 20px;
+      }
+
+      .value-card-inner {
+        padding: 16px;
       }
 
       .explain {
@@ -507,8 +801,12 @@
       }
 
       .chart-grid,
-      .value-grid,
-      .value-metrics {
+      .value-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .value-ledger,
+      .value-stats {
         grid-template-columns: 1fr;
       }
 
@@ -563,13 +861,17 @@
         font-size: 12px;
       }
 
-      .value-metric .value {
-        font-size: 16px;
+      .value-ledger-item .value {
+        font-size: 19px;
       }
 
-      .formula {
-        padding: 12px;
-        font-size: 11px;
+      .value-table th,
+      .value-table td {
+        padding: 12px 14px;
+      }
+
+      .value-table td strong {
+        font-size: 17px;
       }
 
       .chart {
@@ -749,7 +1051,7 @@
 
         <article class="panel wide">
           <h2>Analyse: Wertschöpfung als Saison-Szenario</h2>
-          <p>Sommer und Winter werden getrennt gerechnet. Die Erlösszenarien nutzen 75 EUR im Sommer und 85 EUR im Winter je Appartement/Nacht. Die Anzahl der verkauften Appartement-Nächte wird als Summe `min(3, ceil(Nächtigungen / 2))` je Tag geschätzt. Der Stromteil basiert auf realem Stromverbrauch und ist mit dem hinterlegten Tarif bewertet; der Heizteil bleibt bewusst als Preisformel offen.</p>
+          <p>Sommer und Winter werden getrennt gerechnet. Der Energiepreis fuer Strom bleibt bei 15 ct/kWh als reiner Verbrauchspreis. Netz und Abgaben werden darunter separat als rechnungsbasierte Referenz ausgewiesen, damit die Vollkosten transparent bleiben. Fernwaerme bleibt bewusst als offener kWh-Hebel sichtbar, solange kein Bruttopreis hinterlegt ist.</p>
           <div class="value-grid" id="guest-value-cards"></div>
         </article>
       </div>
@@ -823,6 +1125,7 @@
         .map((key) => guestValue.find((row) => row.season_cluster === key))
         .filter(Boolean);
       const summary = data.metadata.summary;
+      const pricing = (data.metadata.assumptions && data.metadata.assumptions.pricing) || {};
       const heatModel = data.metadata.models ? data.metadata.models.heat_weather_baseline : null;
 
       const fmt = (value, digits = 1) => {
@@ -984,14 +1287,6 @@
           .filter(Boolean);
       };
 
-      const prettyFormula = (formula) => {
-        if (!formula) {
-          return 'n/a';
-        }
-        return formula
-          .replace(/heat_tariff_gross_eur_per_kwh/g, 'FW-Preis brutto');
-      };
-
       const requiredModelOrder = [
         'model1_hdd18',
         'model2_hdd18_has_guests_flag',
@@ -1127,50 +1422,445 @@
       document.getElementById('notes-list').innerHTML = notes.map((note) => `<li>${displayText(note)}</li>`).join('');
 
       document.getElementById('guest-value-cards').innerHTML = orderedGuestValue.length
-        ? orderedGuestValue.map((row) => `
-          <article class="value-card">
-            <span class="value-eyebrow">${displayText(row.season_label)}</span>
-            <h3>${displayText(row.season_label)}: Saison-Szenario</h3>
-            <p>${displayText(row.assumed_revenue_basis)}</p>
-            <div class="value-metrics">
-              <div class="value-metric">
-                <span class="label">Appartementpreis brutto</span>
-                <span class="value">${fmtCurrency(row.assumed_revenue_eur_per_night)}</span>
-              </div>
-              <div class="value-metric">
-                <span class="label">Geschätzte Appartement-Nächte</span>
-                <span class="value">${fmt(row.estimated_occupied_apartment_nights, 0)}</span>
-              </div>
-              <div class="value-metric">
-                <span class="label">Ø belegte Appartements</span>
-                <span class="value">${fmt(row.average_occupied_apartments_per_guest_day, 2)} pro Gasttag</span>
-              </div>
-              <div class="value-metric">
-                <span class="label">Geschätzter Saisonerlös</span>
-                <span class="value">${fmtCurrency(row.estimated_revenue_total_eur, 0)}</span>
-              </div>
-              <div class="value-metric">
-                <span class="label">Stromkosten Gäste gesamt</span>
-                <span class="value">${fmtCurrency(row.electricity_cost_total_guest_attributed_gross_eur)} brutto</span>
-              </div>
-              <div class="value-metric">
-                <span class="label">Deckungsbeitrag vor Heiztarif</span>
-                <span class="value">${fmtCurrency(row.contribution_after_electricity_gross_eur, 0)} brutto</span>
-              </div>
+        ? (() => {
+          const transitionSeason = analysisSeasonal.find((row) => row.season_cluster === 'transition') || null;
+          const transitionElectricity = guestImpactSeasonRow('real_electricity', 'transition');
+          const transitionHeat = guestImpactSeasonRow('heat', 'transition');
+          const summerValue = orderedGuestValue.find((row) => row.season_cluster === 'summer') || null;
+          const winterValue = orderedGuestValue.find((row) => row.season_cluster === 'winter') || null;
+          const pricedScenarioOccupiedNights = orderedGuestValue.reduce((sum, row) => sum + (row.estimated_occupied_apartment_nights || 0), 0);
+          const pricedScenarioRevenue = orderedGuestValue.reduce((sum, row) => sum + (row.estimated_revenue_total_eur || 0), 0);
+          const pricedScenarioAverageRate = pricedScenarioOccupiedNights
+            ? pricedScenarioRevenue / pricedScenarioOccupiedNights
+            : null;
+          const transitionElectricityCost = transitionElectricity
+            ? transitionElectricity.total_guest_attributed_kwh * pricing.electricity_tariff_gross_eur_per_kwh
+            : null;
+          const totalElectricityScenarioCost = (summerValue ? summerValue.electricity_cost_total_guest_attributed_gross_eur : 0) +
+            (winterValue ? winterValue.electricity_cost_total_guest_attributed_gross_eur : 0) +
+            (transitionElectricityCost || 0);
+
+          const tableColumns = [
+            {
+              key: 'total',
+              label: 'Gesamt',
+              seasonLabel: 'Gesamt'
+            },
+            {
+              key: 'summer',
+              label: 'Sommer',
+              seasonLabel: 'Sommer'
+            },
+            {
+              key: 'winter',
+              label: 'Winter',
+              seasonLabel: 'Winter'
+            },
+            {
+              key: 'transition',
+              label: 'Nebensaison',
+              seasonLabel: 'Nebensaison'
+            }
+          ];
+
+          const renderNA = (note = 'nicht bepreist') => `
+            <strong>—</strong>
+            <span class="value-subline">${note}</span>
+          `;
+
+          const tableRows = [
+            { type: 'section', label: 'Betrieb' },
+            {
+              label: 'Appartement-Nächte',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `
+                    <strong>${fmt(summary.total_estimated_occupied_apartment_nights, 0)}</strong>
+                    <span class="value-subline">${fmt(summary.total_nights, 0)} Gästennächte gesamt</span>
+                  `;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `
+                    <strong>${fmt(summerValue.estimated_occupied_apartment_nights, 0)}</strong>
+                    <span class="value-subline">${fmt(summerValue.total_guest_nights, 0)} Gästennächte</span>
+                  `;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `
+                    <strong>${fmt(winterValue.estimated_occupied_apartment_nights, 0)}</strong>
+                    <span class="value-subline">${fmt(winterValue.total_guest_nights, 0)} Gästennächte</span>
+                  `;
+                }
+                if (columnKey === 'transition' && transitionSeason && transitionElectricity) {
+                  return `
+                    <strong>${fmt(transitionSeason.occupied_apartment_nights_estimated, 0)}</strong>
+                    <span class="value-subline">${fmt(transitionElectricity.total_guest_nights, 0)} Gästennächte</span>
+                  `;
+                }
+                return renderNA();
+              }
+            },
+            {
+              label: 'Ø belegte Appartements / Gasttag',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `<strong>${fmt(summary.guest_days ? summary.total_estimated_occupied_apartment_nights / summary.guest_days : null, 2)}</strong>`;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `<strong>${fmt(summerValue.average_occupied_apartments_per_guest_day, 2)}</strong>`;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `<strong>${fmt(winterValue.average_occupied_apartments_per_guest_day, 2)}</strong>`;
+                }
+                if (columnKey === 'transition' && transitionSeason) {
+                  return `<strong>${fmt(transitionSeason.average_occupied_apartments_estimated_per_guest_day, 2)}</strong>`;
+                }
+                return renderNA();
+              }
+            },
+            { type: 'section', label: 'Erlös' },
+            {
+              label: 'Appartementpreis',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `
+                    <strong>${fmtCurrency(pricedScenarioAverageRate)}</strong>
+                    <span class="value-subline">gewichtet aus Sommer + Winter</span>
+                  `;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `<strong>${fmtCurrency(summerValue.assumed_revenue_eur_per_night)}</strong>`;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `<strong>${fmtCurrency(winterValue.assumed_revenue_eur_per_night)}</strong>`;
+                }
+                if (columnKey === 'transition') {
+                  return renderNA('kein Nebensaisonpreis');
+                }
+                return renderNA();
+              }
+            },
+            {
+              label: 'Saisonerlös',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `
+                    <strong>${fmtCurrency(pricedScenarioRevenue, 0)}</strong>
+                    <span class="value-subline">Sommer + Winter Szenario</span>
+                  `;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `<strong>${fmtCurrency(summerValue.estimated_revenue_total_eur, 0)}</strong>`;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `<strong>${fmtCurrency(winterValue.estimated_revenue_total_eur, 0)}</strong>`;
+                }
+                if (columnKey === 'transition') {
+                  return renderNA('kein Nebensaisonpreis');
+                }
+                return renderNA();
+              }
+            },
+            { type: 'section', label: 'Strom' },
+            {
+              label: 'Zusatzstrom Gäste gesamt',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `
+                    <strong>${fmt(totalElectricityScenarioGuestKwh, 0)} kWh</strong>
+                    <span class="value-subline">Summe aus Sommer + Winter + Nebensaison</span>
+                  `;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `<strong>${fmt(summerValue.electricity_total_guest_attributed_kwh, 0)} kWh</strong>`;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `<strong>${fmt(winterValue.electricity_total_guest_attributed_kwh, 0)} kWh</strong>`;
+                }
+                if (columnKey === 'transition' && transitionElectricity) {
+                  return `<strong>${fmt(transitionElectricity.total_guest_attributed_kwh, 0)} kWh</strong>`;
+                }
+                return renderNA();
+              }
+            },
+            {
+              label: 'Stromkosten Gäste',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `
+                    <strong>${fmtCurrency(totalElectricityScenarioCost)}</strong>
+                    <span class="value-subline">15 ct/kWh auf Sommer + Winter + Nebensaison</span>
+                  `;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `
+                    <strong>${fmtCurrency(summerValue.electricity_cost_total_guest_attributed_gross_eur)}</strong>
+                    <span class="value-subline">${fmtPct(summerValue.estimated_revenue_total_eur ? summerValue.electricity_cost_total_guest_attributed_gross_eur / summerValue.estimated_revenue_total_eur : null)} vom Erlös</span>
+                  `;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `
+                    <strong>${fmtCurrency(winterValue.electricity_cost_total_guest_attributed_gross_eur)}</strong>
+                    <span class="value-subline">${fmtPct(winterValue.estimated_revenue_total_eur ? winterValue.electricity_cost_total_guest_attributed_gross_eur / winterValue.estimated_revenue_total_eur : null)} vom Erlös</span>
+                  `;
+                }
+                if (columnKey === 'transition' && transitionElectricityCost !== null) {
+                  return `
+                    <strong>${fmtCurrency(transitionElectricityCost)}</strong>
+                    <span class="value-subline">kein Erlösszenario hinterlegt</span>
+                  `;
+                }
+                return renderNA();
+              }
+            },
+            {
+              label: 'Strom je Gastnacht',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `
+                    <strong>${fmt(annualElectricityScenarioPerGuestNightKwh, 2)} kWh</strong>
+                    <span class="value-subline">modellierter Zusatzstrom je Gästennacht</span>
+                  `;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `<strong>${fmt(summerValue.electricity_additional_per_guest_night_kwh, 2)} kWh</strong>`;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `<strong>${fmt(winterValue.electricity_additional_per_guest_night_kwh, 2)} kWh</strong>`;
+                }
+                if (columnKey === 'transition' && transitionElectricity) {
+                  return `<strong>${fmt(transitionElectricity.additional_per_guest_night_kwh, 2)} kWh</strong>`;
+                }
+                return renderNA();
+              }
+            },
+            { type: 'section', label: 'Fernwärme' },
+            {
+              label: 'Fernwärme Gäste gesamt',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `
+                    <strong>${fmt(summary.heat_guest_attributed_kwh, 0)} kWh</strong>
+                    <span class="value-subline">${fmtPct(summary.heat_guest_attributed_share)} des Gesamtverbrauchs</span>
+                  `;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `<strong>${fmt(summerValue.heat_total_guest_attributed_kwh, 0)} kWh</strong>`;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `<strong>${fmt(winterValue.heat_total_guest_attributed_kwh, 0)} kWh</strong>`;
+                }
+                if (columnKey === 'transition' && transitionHeat) {
+                  return `<strong>${fmt(transitionHeat.total_guest_attributed_kwh, 0)} kWh</strong>`;
+                }
+                return renderNA();
+              }
+            },
+            {
+              label: 'Fernwärme je Gastnacht',
+              render: (columnKey) => {
+                if (columnKey === 'total') {
+                  return `<strong>${fmt(annualHeatGuestPerGuestNightKwh, 2)} kWh</strong>`;
+                }
+                if (columnKey === 'summer' && summerValue) {
+                  return `<strong>${fmt(summerValue.heat_additional_per_guest_night_kwh, 2)} kWh</strong>`;
+                }
+                if (columnKey === 'winter' && winterValue) {
+                  return `<strong>${fmt(winterValue.heat_additional_per_guest_night_kwh, 2)} kWh</strong>`;
+                }
+                if (columnKey === 'transition' && transitionHeat) {
+                  return `<strong>${fmt(transitionHeat.additional_per_guest_night_kwh, 2)} kWh</strong>`;
+                }
+                return renderNA();
+              }
+            }
+          ];
+
+          const annualElectricityCost = pricing.electricity_tariff_gross_eur_per_kwh !== null &&
+            pricing.electricity_tariff_gross_eur_per_kwh !== undefined
+              ? summary.total_grid_electricity_kwh * pricing.electricity_tariff_gross_eur_per_kwh
+              : null;
+          const annualElectricityGuestCost = pricing.electricity_tariff_gross_eur_per_kwh !== null &&
+            pricing.electricity_tariff_gross_eur_per_kwh !== undefined
+              ? summary.total_grid_electricity_kwh * pricing.electricity_tariff_gross_eur_per_kwh * summary.real_electricity_guest_attributed_share
+              : null;
+          const annualElectricityEnergyFixedCost = pricing.electricity_energy_fixed_reference_gross_eur !== null &&
+            pricing.electricity_energy_fixed_reference_gross_eur !== undefined
+              ? pricing.electricity_energy_fixed_reference_gross_eur
+              : null;
+          const annualElectricityNetworkVariableCost = pricing.electricity_network_variable_reference_gross_eur_per_kwh !== null &&
+            pricing.electricity_network_variable_reference_gross_eur_per_kwh !== undefined
+              ? summary.total_grid_electricity_kwh * pricing.electricity_network_variable_reference_gross_eur_per_kwh
+              : null;
+          const annualElectricityNetworkFixedCost = pricing.electricity_network_fixed_reference_gross_eur !== null &&
+            pricing.electricity_network_fixed_reference_gross_eur !== undefined
+              ? pricing.electricity_network_fixed_reference_gross_eur
+              : null;
+          const annualElectricityNetworkVariableGuestCost = pricing.electricity_network_variable_reference_gross_eur_per_kwh !== null &&
+            pricing.electricity_network_variable_reference_gross_eur_per_kwh !== undefined
+              ? summary.total_grid_electricity_kwh * pricing.electricity_network_variable_reference_gross_eur_per_kwh * summary.real_electricity_guest_attributed_share
+              : null;
+          const annualElectricityLeviesVariableCost = pricing.electricity_levies_variable_reference_gross_eur_per_kwh !== null &&
+            pricing.electricity_levies_variable_reference_gross_eur_per_kwh !== undefined
+              ? summary.total_grid_electricity_kwh * pricing.electricity_levies_variable_reference_gross_eur_per_kwh
+              : null;
+          const annualElectricityLeviesFixedCost = pricing.electricity_levies_fixed_reference_gross_eur !== null &&
+            pricing.electricity_levies_fixed_reference_gross_eur !== undefined
+              ? pricing.electricity_levies_fixed_reference_gross_eur
+              : null;
+          const annualElectricityLeviesVariableGuestCost = pricing.electricity_levies_variable_reference_gross_eur_per_kwh !== null &&
+            pricing.electricity_levies_variable_reference_gross_eur_per_kwh !== undefined
+              ? summary.total_grid_electricity_kwh * pricing.electricity_levies_variable_reference_gross_eur_per_kwh * summary.real_electricity_guest_attributed_share
+              : null;
+          const annualElectricityFixedCost =
+            annualElectricityEnergyFixedCost !== null &&
+            annualElectricityNetworkFixedCost !== null &&
+            annualElectricityLeviesFixedCost !== null
+              ? annualElectricityEnergyFixedCost + annualElectricityNetworkFixedCost + annualElectricityLeviesFixedCost
+              : null;
+          const annualElectricityFullCost =
+            annualElectricityCost !== null &&
+            annualElectricityEnergyFixedCost !== null &&
+            annualElectricityNetworkVariableCost !== null &&
+            annualElectricityNetworkFixedCost !== null &&
+            annualElectricityLeviesVariableCost !== null &&
+            annualElectricityLeviesFixedCost !== null
+              ? annualElectricityCost + annualElectricityEnergyFixedCost + annualElectricityNetworkVariableCost + annualElectricityNetworkFixedCost + annualElectricityLeviesVariableCost + annualElectricityLeviesFixedCost
+              : null;
+          const annualElectricityVariableGuestCost =
+            annualElectricityGuestCost !== null &&
+            annualElectricityNetworkVariableGuestCost !== null &&
+            annualElectricityLeviesVariableGuestCost !== null
+              ? annualElectricityGuestCost + annualElectricityNetworkVariableGuestCost + annualElectricityLeviesVariableGuestCost
+              : null;
+          const annualElectricityAllocatedFixedGuestCost =
+            annualElectricityFixedCost !== null
+              ? annualElectricityFixedCost * summary.real_electricity_guest_attributed_share
+              : null;
+          const annualElectricityFullGuestCost =
+            annualElectricityVariableGuestCost !== null &&
+            annualElectricityAllocatedFixedGuestCost !== null
+              ? annualElectricityVariableGuestCost + annualElectricityAllocatedFixedGuestCost
+              : null;
+          const annualHeatCost = pricing.heat_tariff_gross_eur_per_kwh !== null &&
+            pricing.heat_tariff_gross_eur_per_kwh !== undefined
+              ? summary.total_heat_kwh * pricing.heat_tariff_gross_eur_per_kwh
+              : null;
+          const annualHeatGuestCost = pricing.heat_tariff_gross_eur_per_kwh !== null &&
+            pricing.heat_tariff_gross_eur_per_kwh !== undefined
+              ? summary.heat_guest_attributed_kwh * pricing.heat_tariff_gross_eur_per_kwh
+              : null;
+          const totalElectricityScenarioGuestKwh = (summerValue ? summerValue.electricity_total_guest_attributed_kwh : 0) +
+            (winterValue ? winterValue.electricity_total_guest_attributed_kwh : 0) +
+            (transitionElectricity ? transitionElectricity.total_guest_attributed_kwh : 0);
+          const annualElectricityPricedGuestKwh = summary.total_grid_electricity_kwh * summary.real_electricity_guest_attributed_share;
+          const annualElectricityPricedGuestPerGuestNightKwh = summary.total_nights
+            ? annualElectricityPricedGuestKwh / summary.total_nights
+            : null;
+          const annualElectricityScenarioPerGuestNightKwh = summary.total_nights
+            ? totalElectricityScenarioGuestKwh / summary.total_nights
+            : null;
+          const annualHeatGuestPerGuestNightKwh = summary.total_nights
+            ? summary.heat_guest_attributed_kwh / summary.total_nights
+            : null;
+          const annualElectricityCostNote = annualElectricityFullCost !== null
+            ? `Vollkosten ca. ${fmtCurrency(annualElectricityFullCost, 0)} brutto, davon Gäste ca. ${fmtCurrency(annualElectricityFullGuestCost, 0)} brutto bei proportionaler Fixkosten-Umlage.`
+            : null;
+          const annualElectricityPriceLogicNote =
+            pricing.electricity_network_variable_reference_gross_eur_per_kwh !== null &&
+            pricing.electricity_network_variable_reference_gross_eur_per_kwh !== undefined &&
+            pricing.electricity_levies_variable_reference_gross_eur_per_kwh !== null &&
+            pricing.electricity_levies_variable_reference_gross_eur_per_kwh !== undefined
+              ? `Preislogik: 15,00 ct/kWh Energie auf ${fmt(summary.total_grid_electricity_kwh, 0)} kWh Netzbezug plus Netz ${fmt(pricing.electricity_network_variable_reference_gross_eur_per_kwh * 100, 2)} ct/kWh + ${fmtCurrency(pricing.electricity_network_fixed_reference_gross_eur, 0)} fix und Abgaben ${fmt(pricing.electricity_levies_variable_reference_gross_eur_per_kwh * 100, 2)} ct/kWh + ${fmtCurrency(pricing.electricity_levies_fixed_reference_gross_eur, 0)} fix.`
+              : null;
+          const annualHeatCostNote = annualHeatCost !== null
+            ? `Fernwärme brutto gesamt ${fmtCurrency(annualHeatCost, 0)}, davon Gäste ${fmtCurrency(annualHeatGuestCost, 0)}.`
+            : 'Fernwärmepreis ist noch nicht hinterlegt, daher bleibt die Kostenseite bei kWh × Tarif.';
+
+          const pricingNote = orderedGuestValue[0]
+            ? `Strom ist mit ${fmtCurrency(orderedGuestValue[0].electricity_tariff_gross_eur_per_kwh)} je kWh brutto bewertet. Fernwärme bleibt als offener Kostenhebel sichtbar, solange kein Bruttopreis hinterlegt ist.`
+            : '';
+
+          return `
+          <div class="value-table-block">
+            <div class="value-category-grid">
+              <article class="value-category">
+                <span class="value-category-kicker">Strom</span>
+                <h3>Kostenbasis Netzbezug</h3>
+                <div class="value-category-list">
+                  <div class="value-category-item">
+                    <span class="value-category-label">Gesamt 2025</span>
+                    <span class="value-category-value">${fmt(summary.total_grid_electricity_kwh, 0)} kWh</span>
+                    <span class="value-category-meta">Mit dieser kWh-Basis wird der Strompreis bewertet.</span>
+                  </div>
+                  <div class="value-category-item">
+                    <span class="value-category-label">Gästen zugeschrieben gesamt</span>
+                    <span class="value-category-value">ca. ${fmt(annualElectricityPricedGuestKwh, 0)} kWh</span>
+                    <span class="value-category-meta">${fmtPct(summary.real_electricity_guest_attributed_share)} vom Netzbezug, als Kostenbasis. Der modellierte Zusatzstrom steht unten separat.</span>
+                  </div>
+                  <div class="value-category-item">
+                    <span class="value-category-label">Pro Gastnacht</span>
+                    <span class="value-category-value">ca. ${fmt(annualElectricityPricedGuestPerGuestNightKwh, 2)} kWh</span>
+                    <span class="value-category-meta">Gesamtzuschreibung geteilt durch ${fmt(summary.total_nights, 0)} Gästennächte.</span>
+                  </div>
+                </div>
+                <p class="value-category-note">${annualElectricityCostNote}</p>
+                ${annualElectricityPriceLogicNote ? `<p class="value-category-note">${annualElectricityPriceLogicNote}</p>` : ''}
+              </article>
+              <article class="value-category">
+                <span class="value-category-kicker">Fernwärme</span>
+                <h3>Verbrauch und Gästeanteil</h3>
+                <div class="value-category-list">
+                  <div class="value-category-item">
+                    <span class="value-category-label">Gesamt 2025</span>
+                    <span class="value-category-value">${fmt(summary.total_heat_kwh, 0)} kWh</span>
+                    <span class="value-category-meta">Gemessene Fernwärme über das Kalenderjahr 2025.</span>
+                  </div>
+                  <div class="value-category-item">
+                    <span class="value-category-label">Gästen zugeschrieben gesamt</span>
+                    <span class="value-category-value">${fmt(summary.heat_guest_attributed_kwh, 0)} kWh</span>
+                    <span class="value-category-meta">${fmtPct(summary.heat_guest_attributed_share)} des gesamten Fernwärmeverbrauchs.</span>
+                  </div>
+                  <div class="value-category-item">
+                    <span class="value-category-label">Pro Gastnacht</span>
+                    <span class="value-category-value">${fmt(annualHeatGuestPerGuestNightKwh, 2)} kWh</span>
+                    <span class="value-category-meta">Gesamtzuschreibung geteilt durch ${fmt(summary.total_nights, 0)} Gästennächte.</span>
+                  </div>
+                </div>
+                <p class="value-category-note">${annualHeatCostNote}</p>
+              </article>
             </div>
-            <div class="formula">
-              <strong>Erlös</strong><br>
-              ${fmt(row.estimated_occupied_apartment_nights, 0)} Appartement-Nächte * ${fmtCurrency(row.assumed_revenue_eur_per_night)}<br><br>
-              <strong>Heizkosten</strong><br>
-              ${fmt(row.heat_total_guest_attributed_kwh, 0)} kWh * Fernwärmepreis brutto je kWh<br><br>
-              <strong>Mehrverbrauch je Gastnacht</strong><br>
-              Strom ${fmt(row.electricity_additional_per_guest_night_kwh, 2)} kWh, FW ${fmt(row.heat_additional_per_guest_night_kwh, 2)} kWh<br><br>
-              <strong>Deckungsbeitrag brutto</strong><br>
-              ${prettyFormula(row.net_contribution_formula_gross)}
+            <div class="value-table-wrap">
+              <table class="value-table">
+                <thead>
+                  <tr>
+                    <th>Kennzahl</th>
+                    ${tableColumns.map((column) => `<th>${column.label}</th>`).join('')}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRows.map((entry) => {
+                    if (entry.type === 'section') {
+                      return `
+                    <tr class="value-section-row">
+                      <th colspan="${tableColumns.length + 1}">${entry.label}</th>
+                    </tr>
+                  `;
+                    }
+                    return `
+                    <tr>
+                      <th>${entry.label}</th>
+                      ${tableColumns.map((column) => `<td>${entry.render(column.key)}</td>`).join('')}
+                    </tr>
+                  `;
+                  }).join('')}
+                </tbody>
+              </table>
             </div>
-            <p class="card-note">${displayText(row.scenario_note)}</p>
-          </article>
-        `).join('')
+            <p class="value-note">${pricingNote}</p>
+          </div>
+        `;
+        })()
         : '<p>Keine saisonalen Wertschöpfungsdaten vorhanden.</p>';
 
       Highcharts.chart('chart-raw-daily-electricity-pv', {
@@ -1872,7 +2562,7 @@
         yAxis: [{
           title: { text: 'kWh' }
         }, {
-          title: { text: 'Temp / HDD18' },
+          title: { text: 'HDD18' },
           opposite: true
         }],
         tooltip: { shared: true, valueDecimals: 1 },
@@ -1882,8 +2572,6 @@
           { type: 'column', name: 'Realer Strom', data: toCategorySeries(analysisSeasonal, 'real_electricity_kwh') },
           { type: 'column', name: 'PV', data: toCategorySeries(analysisSeasonal, 'pv_kwh') },
           { type: 'column', name: 'Einspeisung', data: toCategorySeries(analysisSeasonal, 'electricity_feed_in_kwh') },
-          { type: 'column', name: 'PV zu Wärme', data: toCategorySeries(analysisSeasonal, 'potential_pv_to_heat_kwh') },
-          { type: 'line', name: 'Mitteltemperatur', yAxis: 1, data: toCategorySeries(analysisSeasonal, 'temp_mean_c') },
           { type: 'line', name: 'HDD18', yAxis: 1, data: toCategorySeries(analysisSeasonal, 'hdd18') }
         ]
       });

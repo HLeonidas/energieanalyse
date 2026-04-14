@@ -1342,13 +1342,13 @@ align_segmented_summary_to_applied_series <- function(
     segment_name <- segmented_summary$segment_key[row_idx]
     segment_mask <- daily_dataset$season_cluster == segment_name
     applied_values <- unique(daily_dataset[[segment_assignment_col]][segment_mask & !is.na(daily_dataset[[segment_assignment_col]])])
+    fit_rows <- segment_mask &
+      !is.na(daily_dataset[[target_col]]) &
+      !is.na(daily_dataset[[baseline_col]]) &
+      !is.na(daily_dataset[[impact_col]])
+    guest_rows <- fit_rows & daily_dataset$has_guests_flag == 1
 
     if (length(applied_values) == 1 && applied_values == "all_days_fallback") {
-      fit_rows <- segment_mask &
-        !is.na(daily_dataset[[target_col]]) &
-        !is.na(daily_dataset[[baseline_col]]) &
-        !is.na(daily_dataset[[impact_col]])
-      guest_rows <- fit_rows & daily_dataset$has_guests_flag == 1
       passthrough_columns <- intersect(
         names(segmented_summary),
         c(
@@ -1390,6 +1390,23 @@ align_segmented_summary_to_applied_series <- function(
       )
       segmented_summary$segment_source[row_idx] <- "all_days_fallback_negative_or_sparse"
     }
+
+    segmented_summary$baseline_no_guest_avg_on_guest_days_kwh[row_idx] <- safe_mean(
+      daily_dataset[[baseline_col]][guest_rows]
+    )
+    segmented_summary$additional_per_guest_night_kwh[row_idx] <- safe_divide(
+      safe_sum(daily_dataset[[impact_col]][fit_rows]),
+      safe_sum(daily_dataset$nights[guest_rows])
+    )
+    segmented_summary$additional_per_guest_night_pct_vs_baseline[row_idx] <- safe_divide(
+      segmented_summary$additional_per_guest_night_kwh[row_idx],
+      segmented_summary$baseline_no_guest_avg_on_guest_days_kwh[row_idx]
+    )
+    segmented_summary$total_guest_attributed_kwh[row_idx] <- safe_sum(daily_dataset[[impact_col]][fit_rows])
+    segmented_summary$total_guest_attributed_share[row_idx] <- safe_divide(
+      segmented_summary$total_guest_attributed_kwh[row_idx],
+      safe_sum(daily_dataset[[target_col]][fit_rows])
+    )
   }
 
   segmented_summary
@@ -2088,8 +2105,21 @@ metadata <- list(
     ),
     guest_days = safe_sum(analysis_daily$has_guests_flag),
     occupancy_drop_days = safe_sum(analysis_daily$occupancy_drop_flag),
-    real_electricity_additional_per_guest_night_kwh = real_electricity_guest_summary$additional_per_guest_night_kwh[1],
-    real_electricity_additional_per_guest_night_pct = real_electricity_guest_summary$additional_per_guest_night_pct_vs_baseline[1],
+    real_electricity_additional_per_guest_night_kwh = safe_divide(
+      safe_sum(analysis_daily$real_electricity_guest_impact_seasonal_kwh),
+      safe_sum(analysis_daily$nights[analysis_daily$has_guests_flag == 1])
+    ),
+    real_electricity_additional_per_guest_night_pct = safe_divide(
+      safe_divide(
+        safe_sum(analysis_daily$real_electricity_guest_impact_seasonal_kwh),
+        safe_sum(analysis_daily$nights[analysis_daily$has_guests_flag == 1])
+      ),
+      safe_mean(
+        analysis_daily$real_electricity_no_guest_baseline_seasonal_kwh[
+          analysis_daily$has_guests_flag == 1
+        ]
+      )
+    ),
     real_electricity_guest_attributed_kwh = safe_sum(analysis_daily$real_electricity_guest_impact_seasonal_kwh),
     real_electricity_guest_attributed_share = safe_divide(
       safe_sum(analysis_daily$real_electricity_guest_impact_seasonal_kwh),
@@ -2101,8 +2131,21 @@ metadata <- list(
       analysis_daily$real_electricity_model_residual_structural_seasonal_kwh
     ),
     real_electricity_model_residual_kwh = safe_sum(analysis_daily$real_electricity_model_residual_seasonal_kwh),
-    heat_additional_per_guest_night_kwh = heat_guest_summary$additional_per_guest_night_kwh[1],
-    heat_additional_per_guest_night_pct = heat_guest_summary$additional_per_guest_night_pct_vs_baseline[1],
+    heat_additional_per_guest_night_kwh = safe_divide(
+      safe_sum(analysis_daily$heat_guest_impact_seasonal_kwh),
+      safe_sum(analysis_daily$nights[analysis_daily$has_guests_flag == 1])
+    ),
+    heat_additional_per_guest_night_pct = safe_divide(
+      safe_divide(
+        safe_sum(analysis_daily$heat_guest_impact_seasonal_kwh),
+        safe_sum(analysis_daily$nights[analysis_daily$has_guests_flag == 1])
+      ),
+      safe_mean(
+        analysis_daily$heat_no_guest_baseline_seasonal_kwh[
+          analysis_daily$has_guests_flag == 1
+        ]
+      )
+    ),
     heat_guest_attributed_kwh = safe_sum(analysis_daily$heat_guest_impact_seasonal_kwh),
     heat_guest_attributed_share = safe_divide(
       safe_sum(analysis_daily$heat_guest_impact_seasonal_kwh),
@@ -2159,6 +2202,29 @@ metadata <- list(
       summer_apartment_rate_eur_per_night = 75,
       winter_apartment_rate_eur_per_night = 85,
       electricity_tariff_gross_eur_per_kwh = 0.15,
+      electricity_reference_invoice_vat_rate = 0.20,
+      electricity_network_reference_invoice_period_start = "2025-03-01",
+      electricity_network_reference_invoice_period_end = "2026-02-28",
+      electricity_reference_invoice_consumption_kwh = 7745.8,
+      electricity_energy_fixed_reference_net_eur = 22.87 + 22.34,
+      electricity_energy_fixed_reference_gross_eur = (22.87 + 22.34) * 1.20,
+      electricity_network_fixed_reference_net_eur = 40.24 + 8.73 + 28.80,
+      electricity_network_fixed_reference_gross_eur = (40.24 + 8.73 + 28.80) * 1.20,
+      electricity_network_variable_reference_net_eur = 294.41 + 164.35 + 294.50 + 30.41 + 11.21,
+      electricity_network_variable_reference_gross_eur = (294.41 + 164.35 + 294.50 + 30.41 + 11.21) * 1.20,
+      electricity_network_variable_reference_gross_eur_per_kwh =
+        ((294.41 + 164.35 + 294.50 + 30.41 + 11.21) * 1.20) / 7745.8,
+      electricity_network_reference_gross_eur = 1047.18,
+      electricity_network_reference_gross_eur_per_kwh = 1047.18 / 7746,
+      electricity_levies_fixed_reference_net_eur = 19.01 + 60.84,
+      electricity_levies_fixed_reference_gross_eur = (19.01 + 60.84) * 1.20,
+      electricity_levies_variable_reference_net_eur = 70.51 + 3.05,
+      electricity_levies_variable_reference_gross_eur = (70.51 + 3.05) * 1.20,
+      electricity_levies_variable_reference_gross_eur_per_kwh =
+        ((70.51 + 3.05) * 1.20) / 7745.8,
+      electricity_levies_reference_gross_eur = 184.09,
+      electricity_levies_reference_gross_eur_per_kwh = 184.09 / 7746,
+      electricity_reference_invoice_total_gross_eur = 2498.08,
       heat_tariff_gross_eur_per_kwh = NA_real_
     ),
     economic_interpretation = list(
